@@ -4,6 +4,10 @@ A React Native (Expo) app for iOS and Android. A student photographs a page of
 college calculus work; the app marks mistakes in red on the photo and builds a
 list of corrections, like a personal tutor. Correct work is left alone.
 
+A personal project, not published to app stores. The test device is a
+Google Pixel 9. The plan, decisions and phase details are in
+[`docs/PLAN.md`](docs/PLAN.md).
+
 **Status: Phase 1 of 6.** Navigation, page capture (document scanner, camera,
 photo library) and the crop/rotate step work. Grading is not connected yet.
 
@@ -58,9 +62,9 @@ plain system camera, without edge detection.
 npm install                 # from the repo root (npm workspaces)
 ```
 
-Before your first EAS build, change the placeholder bundle identifier
-`com.example.calculustutor` in `apps/mobile/app.json` (`ios.bundleIdentifier`
-and `android.package`) to one you own.
+For Android, the placeholder app ID `com.example.calculustutor` is fine for
+personal use. An iOS build needs a bundle identifier you own: change
+`ios.bundleIdentifier` in `apps/mobile/app.json` first.
 
 ### iOS
 
@@ -91,11 +95,26 @@ Install the build from the link EAS gives you, then start the bundler with
 
 **Local build (Android Studio installed):**
 
+1. Install [Android Studio](https://developer.android.com/studio). Its setup
+   wizard installs the Android SDK, platform tools and a JDK.
+2. Set `ANDROID_HOME` to the SDK folder (shown in Android Studio under
+   Settings → Languages & Frameworks → Android SDK). Add its `platform-tools`
+   subfolder to your `PATH`.
+3. On the phone (e.g. Pixel 9): Settings → About phone → tap **Build number**
+   seven times. Then turn on Settings → System → Developer options → **USB
+   debugging**.
+4. Connect the phone by USB, accept the "Allow USB debugging?" prompt, and
+   check that `adb devices` lists it.
+5. Build, install and start the bundler:
+
 ```sh
 cd apps/mobile
-npx expo run:android            # emulator
-npx expo run:android --device   # USB-connected phone
+npx expo run:android --device   # USB-connected phone (first build takes 10–20 min)
+npx expo run:android            # or an emulator
 ```
+
+Later, when you've only changed JavaScript, run `npm run mobile` and open the
+app on the phone. Rebuild only when native dependencies change.
 
 **Cloud build (EAS):**
 

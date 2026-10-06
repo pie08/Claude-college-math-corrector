@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "Calculus Tutor",
+    "slug": "calculus-tutor",
+    "scheme": "calculustutor",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.calculustutor"
+    },
+    "android": {
+      "package": "com.example.calculustutor",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "react-native-document-scanner-plugin",
+        {
+          "cameraPermission": "Calculus Tutor uses the camera to scan pages of your math work so it can check them."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Calculus Tutor uses the camera to photograph pages of your math work so it can check them.",
+          "photosPermission": "Calculus Tutor lets you pick a photo of your math work to check.",
+          "microphonePermission": false
+        }
+      ]
+    ]
+  }
+}

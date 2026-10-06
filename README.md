@@ -8,14 +8,16 @@ A personal project, not published to app stores. The test device is a
 Google Pixel 9. The plan, decisions and phase details are in
 [`docs/PLAN.md`](docs/PLAN.md).
 
-**Status: Phase 1 of 6.** Navigation, page capture (document scanner, camera,
-photo library) and the crop/rotate step work. Grading is not connected yet.
+**Status: Phase 2 of 6.** The app captures, crops and rotates pages (Phase 1).
+The grading server reads a page with Claude and returns the mistakes with
+boxes, explanations and fixes (Phase 2). The app isn't connected to the
+server yet (Phase 3).
 
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 1 | Scaffold, navigation, capture, crop/rotate | Done |
-| 2 | Backend proxy, Claude vision call, JSON schema validation | Next |
-| 3 | Red error overlay with tap-for-explanation | |
+| 2 | Backend proxy, Claude vision call, JSON schema validation | Done |
+| 3 | Red error overlay with tap-for-explanation | Next |
 | 4 | Corrections list with math rendering, local history | |
 | 5 | Unit selector, SymPy verification, OCR box snapping, error states | |
 | 6 | On-device testing, known limitations | |
@@ -32,10 +34,17 @@ apps/mobile/                Expo app (TypeScript, Expo Router)
   src/components/           Shared UI (Button, EmptyState)
   src/theme/                Light/dark color tokens
   src/config.ts             Image size and quality settings
+packages/shared/            Zod schemas for the grading result, shared by app and server
+services/api/               Grading server (Node/TypeScript, Hono, Anthropic SDK)
+  src/prompt.ts             Grading instructions for Claude
+  src/grader.ts             Claude call, validation, one retry on invalid output
+  src/app.ts                HTTP API: POST /v1/grade (JSON or streamed progress)
+  scripts/grade.ts          Command-line grader that saves annotated copies
+  scripts/eval.ts           Scores the grader against answer keys
+  test/fixtures/pages/      Test pages and answer keys (local only, gitignored)
 ```
 
-Later phases add `services/api` (Node/TypeScript grading proxy), `services/cas`
-(Python SymPy checker) and `packages/shared` (schemas shared by app and server).
+Phase 5 adds `services/cas` (Python SymPy checker).
 
 ## Prerequisites
 
@@ -131,6 +140,29 @@ The Android scanner runs inside Google Play services, so it needs a device or
 emulator image with Play services. The first scan may download the scanner
 module.
 
+## Grading server
+
+Copy `.env.example` to `.env` in the repo root and fill in `ANTHROPIC_API_KEY`
+and `API_SHARED_SECRET`. `.env` is gitignored.
+
+```sh
+npm run api                                   # dev server on http://localhost:8787
+npm run grade -- path/to/photo.jpg            # grade photos (or a folder) from the command line
+npm run eval -- --set exam1 --efforts high    # score against answers-exam1.md
+```
+
+`grade` and `eval` save each result's JSON and an annotated copy of the page
+(red boxes for mistakes, amber dashed for unreadable steps) under
+`services/api/out/`. Every graded page costs real money: about 3–6¢ with
+`claude-sonnet-5-5` at high effort.
+
+**API:** `POST /v1/grade` with `Authorization: Bearer <API_SHARED_SECRET>` and a
+multipart form: `image` (the photo) and optional `unit` (e.g. "Limits"). With
+`Accept: text/event-stream` it streams progress events and then the result;
+otherwise it returns the result as JSON. The shapes are in
+`packages/shared/src/grade.ts`. Photos are processed in memory and never
+saved or logged by the server.
+
 ## Checks
 
 From the repo root:
@@ -138,7 +170,7 @@ From the repo root:
 ```sh
 npm run typecheck   # tsc
 npm run lint        # ESLint (eslint-config-expo)
-npm test            # Jest unit tests
+npm test            # Jest (app) and Vitest (server) unit tests; no API calls
 ```
 
 ## Phase 1 test checklist
@@ -164,6 +196,12 @@ npm test            # Jest unit tests
   correction comes from the scanner, so use "Scan a page" for best results.
 - The crop handles can't be operated with VoiceOver/TalkBack. The full image is
   used by default, and "Reset" restores it.
+- **Grading speed:** about 9–17 s per exam page, and up to ~35 s for a dense
+  photo with many problems. That's over the 15 s target on busy pages; the app
+  shows live progress (Phase 3).
+- **Already-graded pages:** a teacher's red-pen marks can sway the grader (it
+  once read a red corrected answer as the student's). Real use is checking work
+  before it's graded, so this rarely matters.
 - The root `package.json` pins `react`/`react-dom` with `overrides`. Without it,
   npm hoists a second, newer React to the root for library peer dependencies,
   and two copies of React in one app break hooks at runtime.

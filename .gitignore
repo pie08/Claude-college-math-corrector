@@ -4,6 +4,9 @@ node_modules/
 .env
 .env*.local
 
+# Grader output (results and annotated copies of test pages)
+services/api/out/
+
 # Real test pages (photos of graded work) stay on this computer; only the
 # answer key template is committed.
 services/api/test/fixtures/pages/*

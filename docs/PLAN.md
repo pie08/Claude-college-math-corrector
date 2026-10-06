@@ -87,11 +87,33 @@ UI rules:
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 1 | Scaffold, navigation, capture, crop/rotate | Done (awaiting Pixel 9 test) |
-| 2 | Backend + Claude call + schema validation, tested on sample images | Next |
-| 3 | Red overlay with tap-for-explanation; app wired to backend | |
+| 2 | Backend + Claude call + schema validation, tested on sample images | Done |
+| 3 | Red overlay with tap-for-explanation; app wired to backend | Next |
 | 4 | Corrections list with math rendering; SQLite history | |
 | 5 | Unit selector, SymPy verification, OCR box snapping, error states | |
 | 6 | Device testing on the Pixel 9, known limitations | |
+
+### Phase 2 results (2026-10-06)
+
+Exam 1 set: 6 scored pages, 8 real errors, 1 all-correct page. Scored by part,
+then every flag was checked by hand against the line it marked.
+
+| Effort | Precision | Recall | Flags on the right line | Typical / slowest | Cost per page |
+| --- | --- | --- | --- | --- | --- |
+| low | 89% | 100% | 6 of 8 (4b on a correct step; 7a false flag) | 7.7 / 12.5 s | 2.3¢ |
+| medium | 100% | 100% | 7 of 8 (4b on a correct step) | 7.0 / 13.1 s | 2.4¢ |
+| high | 100% | 100% | 8 of 8 | 11.7–13.1 / 15.9–17.0 s | 3.0¢ |
+
+- **Default effort: high.** Lower effort finds the right problem but sometimes
+  boxes a correct line, which is exactly the wrong-flag harm we want to avoid.
+- **Pixel photos (7, no answer key):** checked by eye. Real errors caught with
+  tight boxes; 14–34 s per page (dense pages run long); 3–6¢ each.
+- **Guard added:** a "correction" identical to the flagged step is treated as
+  invalid output and retried.
+- **Known weakness:** a teacher's red-pen marks on already-graded pages can sway
+  the grader, even with a prompt rule to ignore them.
+- The eval scores by part, not by line. Check line accuracy in the annotated
+  images (`services/api/out/eval/...`) before changing the prompt or effort.
 
 ### Phase 2 scope
 

@@ -26,7 +26,7 @@ problems graded in about 15 seconds.
 | Backend | Node/TypeScript (Hono) + Python SymPy in one container. Runs on the dev computer first; deploy (Fly.io / Render / Cloud Run) only when the phone needs it away from home. |
 | Abuse/cost control | Personal use: one shared secret between app and server, a server-side daily request cap, and a monthly spend limit in the Anthropic Console. No App Attest / Play Integrity, no accounts. |
 | Priority | Accuracy over speed. Aim for 15 s and show live progress. Favor fewer, surer flags over catching every error. |
-| Test pages | Real photos from the Pixel 9 in `services/api/test/fixtures/pages/`, with an answer key (see `answers.md` there). Synthetic pages only as a fallback. |
+| Test pages | Local only (gitignored): `services/api/test/fixtures/pages/`. First set: graded Exam 1 (7 work pages rendered from the scanned PDF, instructor stamps painted out) with `answers-exam1.md` built from the correction sheet. Real Pixel 9 photos come next. Format: `answers.md`. |
 
 ## Architecture
 

@@ -1,7 +1,11 @@
-# Answer key for test pages
+# Answer key for test pages (template)
+
+Everything else in this folder is gitignored and stays on your computer:
+page images, source PDFs and the real answer keys (`answers-*.md`, e.g.
+`answers-exam1.md`). This file only documents the format.
 
 Put your page photos in this folder (`page-01.jpg`, `page-02.jpg`, ...) and
-describe each one below. The grader's output is scored against this list, so
+describe each one in an `answers-<name>.md` file, using the format below. The grader's output is scored against this list, so
 it only needs to say where the real mistakes are. Exact LaTeX isn't needed.
 
 For each page, list every problem and either:

@@ -3,3 +3,9 @@ node_modules/
 *.log
 .env
 .env*.local
+
+# Real test pages (photos of graded work) stay on this computer; only the
+# answer key template is committed.
+services/api/test/fixtures/pages/*
+!services/api/test/fixtures/pages/answers.md
+!services/api/test/fixtures/pages/.gitkeep

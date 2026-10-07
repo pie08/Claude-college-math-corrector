@@ -88,6 +88,7 @@ export const GradeStageSchema = z.enum(['received', 'checking_image', 'reading',
 export const GradeErrorCodeSchema = z.enum([
   'unauthorized',
   'rate_limited',
+  'over_budget',
   'bad_request',
   'bad_image',
   'too_blurry',

@@ -8,7 +8,7 @@ import { GradeError, parseJson, responseText, type ModelCall } from './grader';
 import type { PreparedImage } from './image';
 import { renderMathSvg } from './math';
 import { CasCheckSchema } from './modelOutput';
-import { estimateCost } from './pricing';
+import { estimateCost, totalInputTokens } from './pricing';
 
 /** What Claude returns for a worked solution (enforced with structured outputs). */
 export const TutorModelSchema = z.strictObject({
@@ -80,9 +80,9 @@ export async function solveProblem(
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const response = await deps.call({ system: TUTOR_PROMPT, messages }, () => {});
-    inputTokens += response.usage.input_tokens;
+    inputTokens += totalInputTokens(response.usage);
     outputTokens += response.usage.output_tokens;
-    cost += estimateCost(response.model, response.usage.input_tokens, response.usage.output_tokens);
+    cost += estimateCost(response.model, response.usage);
     if (response.stop_reason === 'refusal') {
       throw new GradeError('model_refused', "This problem couldn't be worked out. Try another one.");
     }

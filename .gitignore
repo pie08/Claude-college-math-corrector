@@ -16,3 +16,6 @@ services/api/test/fixtures/pages/*
 # Python virtual environments
 .venv/
 __pycache__/
+
+# Server usage log (token counts and costs)
+services/api/data/

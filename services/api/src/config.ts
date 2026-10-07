@@ -33,6 +33,10 @@ export type ServerConfig = GraderConfig & {
   /** Grading requests allowed per UTC day, across all clients. */
   dailyLimit: number;
   maxUploadBytes: number;
+  /** Estimated spend allowed per calendar month in USD; 0 = no budget. */
+  monthlyBudget: number;
+  /** Where the usage log (tokens and costs, never images) is kept. */
+  usageLogPath: string;
 };
 
 export function graderConfig(env: NodeJS.ProcessEnv = process.env): GraderConfig {
@@ -42,7 +46,8 @@ export function graderConfig(env: NodeJS.ProcessEnv = process.env): GraderConfig
     model: env.ANTHROPIC_MODEL ?? 'claude-sonnet-5-5',
     effort,
     refusalFallback: env.REFUSAL_FALLBACK !== 'off',
-    maxImageEdge: Number(env.MAX_IMAGE_EDGE ?? 2048),
+    // 1568 matched 2048 on every eval page and phone photo, with ~1,700 fewer input tokens.
+    maxImageEdge: Number(env.MAX_IMAGE_EDGE ?? 1568),
     // Calibrated on a Pixel photo and a scanned exam: sharp pages score 280-600,
     // still-readable blur ~30, unreadable blur under ~6.
     minSharpness: Number(env.MIN_SHARPNESS ?? 15),
@@ -62,5 +67,7 @@ export function serverConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig
     tutorEffort: parseEffortEnv(env.TUTOR_EFFORT ?? 'medium', 'TUTOR_EFFORT'),
     dailyLimit: Number(env.DAILY_REQUEST_LIMIT ?? 100),
     maxUploadBytes: Number(env.MAX_UPLOAD_BYTES ?? 15 * 1024 * 1024),
+    monthlyBudget: Number(env.MONTHLY_BUDGET_USD ?? 0),
+    usageLogPath: env.USAGE_LOG ?? path.join(repoRoot, 'services/api/data/usage.jsonl'),
   };
 }

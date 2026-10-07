@@ -14,7 +14,7 @@ of every phase.
 
 ![App diagram](app-diagram.png)
 
-**Status: Phases 1–6 and 8 done; Phase 7 next.** Scan or pick a page, crop it, tap "Check my work",
+**Status: all 8 phases done.** Scan or pick a page, crop it, tap "Check my work",
 and the page comes back with red marks on mistakes; tap a mark for the
 explanation and fix in real math notation. Fixes are double-checked by a math
 engine (SymPy), and boxes are snapped to your handwriting. Every graded page is
@@ -22,7 +22,8 @@ saved on the phone: reopen it from History, and study all your mistakes in
 Corrections. Pick your current unit in Settings. Differential equations are
 checked too, including plugging solutions back into the equation. Tap
 "Work out a problem step by step" to see any problem on the page solved one
-step at a time, starting from where your work went off track.
+step at a time, starting from where your work went off track. Settings shows
+what you've spent today and this month.
 
 | Phase | Scope | Status |
 | --- | --- | --- |
@@ -32,7 +33,7 @@ step at a time, starting from where your work went off track.
 | 4 | Corrections list with math rendering, local history | Done |
 | 5 | Unit selector, SymPy verification, box snapping, error states, hosting | Done |
 | 6 | Differential equations support, on-device testing, known limitations | Done |
-| 7 | Usage tracker (pages and dollars) and cost reduction | |
+| 7 | Usage tracker (pages and dollars) and cost reduction | Done |
 | 8 | Step-by-step tutor: work out a selected problem | Done |
 
 ## Repository layout
@@ -195,8 +196,15 @@ npm run tutor -- page.jpg --label 2a          # work out one problem step by ste
 
 `grade` and `eval` save each result's JSON and an annotated copy of the page
 (red boxes for mistakes, amber dashed for unreadable steps) under
-`services/api/out/`. Every graded page costs real money: about 3–6¢ with
-`claude-sonnet-5-5` at high effort.
+`services/api/out/`. Every graded page costs real money: about 2.5¢ for an
+exam page and up to ~4¢ for a dense photo (`claude-sonnet-5-5`, high effort,
+1568 px images, cached instructions). A step-by-step solution is about 2¢.
+
+**Spending:** the server logs every request's tokens and estimated cost to
+`services/api/data/usage.jsonl` (no images), shown in the app under Settings →
+Usage. Set `MONTHLY_BUDGET_USD` in `.env` to pause grading once a month's
+estimated spend reaches it, and keep a spend limit in the Anthropic Console
+as the hard stop.
 
 **API:** `POST /v1/grade` with `Authorization: Bearer <API_SHARED_SECRET>` and a
 multipart form: `image` (the photo) and optional `unit` (e.g. "Limits"). With
@@ -258,6 +266,20 @@ npm run typecheck   # tsc
 npm run lint        # ESLint (eslint-config-expo)
 npm test            # Jest (app) and Vitest (server) unit tests; no API calls
 ```
+
+## Phase 7 test checklist
+
+1. **Usage:** open Settings. "Usage" shows Today / This month / All time with
+   pages, solutions and dollars, and the average per page.
+2. **It counts:** grade a page, go back to Settings. Today's pages and dollars
+   went up by about 2–4¢.
+3. **Same photo again:** grade a page, go back, and grade the exact same photo
+   again. The second result comes back in a second or two and costs nothing.
+4. **Budget (optional):** set `MONTHLY_BUDGET_USD=0.01` in the root `.env` and
+   restart `npm run api`. Settings shows a red full bar, and grading says
+   "Monthly budget reached". Remove the line (or set a real budget) after.
+5. **Server offline:** stop the server and open Settings. Usage says "Can't
+   reach the grading server" instead of spinning forever.
 
 ## Phase 8 test checklist
 

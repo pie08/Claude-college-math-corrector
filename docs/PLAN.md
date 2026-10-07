@@ -92,7 +92,7 @@ UI rules:
 | 4 | Corrections list with math rendering; SQLite history | Done |
 | 5 | Unit selector, SymPy verification, box snapping (ink-based), error states, hosting the server | Done (hosting: Dockerfile ready, provider not chosen yet) |
 | 6 | **Differential equations support** (once the app is almost complete), then device testing on the Pixel 9 and known limitations | Done |
-| 7 | **Usage tracker + cost reduction** (requested 2026-10-06) | |
+| 7 | **Usage tracker + cost reduction** (requested 2026-10-06) | Done |
 | 8 | **Step-by-step tutor:** work out a problem you select (requested 2026-10-06) | Done (built before Phase 7, at the user's request) |
 
 ### Phase 6 notes (2026-10-06)
@@ -133,7 +133,41 @@ already reads DE work in general, but it needs dedicated support:
 - A "Differential Equations" option in the unit selector.
 - DE test pages with an answer key (`answers-de.md`) and an eval run.
 
-### Phase 7: usage tracker and cost reduction (requested 2026-10-06)
+### Phase 7 notes (2026-10-06)
+
+- **Usage log** (`services/api/src/usage.ts`): every Claude response (retries
+  and failures included) is appended to `services/api/data/usage.jsonl`
+  (gitignored) with model, tokens, cache tokens and estimated cost; every app
+  request with its outcome. No images or page content. Days and months follow
+  the server's time zone.
+- **`GET /v1/usage`** and a **Usage section in Settings**: today, this month,
+  all time (pages, solutions, dollars), average per page, and a budget bar.
+- **Budget:** `MONTHLY_BUDGET_USD` (off by default). Once this month's
+  estimated spend reaches it, new grades and solutions get "Monthly budget
+  reached"; the bar turns amber at 80%. The Anthropic Console spend limit
+  stays the hard backstop.
+- **Same photo twice:** results are kept in memory for 24 h by a hash of the
+  prepared image (+ unit, + problem for the tutor), so "Try again" after a
+  dropped connection is free. Results only, never images.
+- **Cost levers measured** (Exam 1 + DE sheets, 9 pages, one at a time):
+
+  | Setting | Caught | False flags | p50 s | ¢/page |
+  | --- | --- | --- | --- | --- |
+  | Before Phase 7 (high, 2048 px, no caching) | 12/12 | 0 | ~13 | 3.4 |
+  | + prompt caching | 12/12 | 0 | 11.7 | 2.8 |
+  | + 1568 px images (**new default**) | 12/12 | 0 | 12.5 | 2.5 |
+  | medium effort instead of high (rejected) | 10/12 | 0 | 7.0 | 2.0 |
+
+  1568 px also matched 2048 px on three Pixel photos (same mistakes, same
+  boxes). Medium effort missed two mistakes, so grading stays at high; the
+  tutor uses medium (its answers are SymPy-checked). Total: about 26% cheaper
+  per page with no accuracy loss. Trimming output wasn't done: the
+  explanations are the point of the app.
+- Prompt caching only helps when pages are graded within ~5 minutes of each
+  other (the cache's lifetime); a lone page pays a small cache-write premium
+  (~0.1¢).
+
+### Original Phase 7 plan (requested 2026-10-06)
 
 Usage tracker:
 - The server already computes each request's tokens and cost

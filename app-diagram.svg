@@ -36,7 +36,7 @@
 
   <!-- Header -->
   <text class="title" x="40" y="52">Calculus Tutor: how the app works</text>
-  <text class="subtitle" x="40" y="78">Updated after Phase 8 (2026-10-06). Phases: 1 capture ✓ · 2 server ✓ · 3 overlay ✓ · 4 history ✓ · 5 unit, SymPy, boxes ✓ · 6 diff. equations ✓ · 8 step-by-step tutor ✓ · 7 usage + cost (next)</text>
+  <text class="subtitle" x="40" y="78">Updated after Phase 7, all phases done (2026-10-06): 1 capture ✓ · 2 server ✓ · 3 overlay ✓ · 4 history ✓ · 5 unit, SymPy, boxes ✓ · 6 diff. equations ✓ · 8 step-by-step tutor ✓ · 7 usage + cost ✓</text>
 
   <!-- Legend -->
   <rect class="built" x="1085" y="30" width="22" height="16" rx="3"/><text class="d" x="1114" y="43">Built</text>
@@ -95,10 +95,10 @@
   <text class="d" x="62" y="902">Pick a problem (or "Work it out" on a mark) → steps one at a time; saved</text>
   <text class="f" x="62" y="919">scan/tutor.tsx · features/tutor/ (api, context)</text>
 
-  <rect class="next" x="45" y="942" width="520" height="70" rx="10"/>
-  <text class="h" x="62" y="968">10. Usage: pages, tutor requests, dollars</text>
-  <text class="d" x="62" y="988">Today / this month in Settings; cost reduction measured with the eval</text>
-  <text class="tag" x="490" y="968" fill="#3651d4">PHASE 7</text>
+  <rect class="built" x="45" y="942" width="520" height="70" rx="10"/>
+  <text class="h" x="62" y="968">10. Usage: pages, solutions, dollars</text>
+  <text class="d" x="62" y="988">Settings → Usage: today / month / all time, avg per page, budget bar</text>
+  <text class="f" x="62" y="1005">(tabs)/settings.tsx · features/usage/</text>
 
   <!-- flow arrows within the app -->
   <path class="flow" d="M305,218 V232"/>
@@ -121,7 +121,7 @@
 
   <rect class="built" x="655" y="234" width="520" height="70" rx="10"/>
   <text class="h" x="672" y="260">B. Prepare the image (in memory only)</text>
-  <text class="d" x="672" y="280">Fix EXIF rotation · shrink to ≤ 2048 px · sharpness (blur) score</text>
+  <text class="d" x="672" y="280">Fix EXIF rotation · shrink to ≤ 1568 px · sharpness (blur) score</text>
   <text class="f" x="672" y="297">src/image.ts</text>
 
   <rect class="built" x="655" y="320" width="520" height="86" rx="10"/>
@@ -162,10 +162,10 @@
   <text class="d" x="672" y="812">Photo + problem label + mistakes → Claude (medium effort) → SymPy checks answer</text>
   <text class="f" x="672" y="829">src/tutor.ts · npm run tutor -- &lt;img&gt; --label 2a</text>
 
-  <rect class="next" x="655" y="852" width="520" height="70" rx="10"/>
-  <text class="h" x="672" y="878">I. Usage + cost reduction</text>
-  <text class="d" x="672" y="898">Every request's tokens and cost returned to the app; cheaper calls, same accuracy</text>
-  <text class="tag" x="1090" y="878" fill="#3651d4">PHASE 7</text>
+  <rect class="built" x="655" y="852" width="520" height="70" rx="10"/>
+  <text class="h" x="672" y="878">I. Usage log, budget, cost savings</text>
+  <text class="d" x="672" y="898">GET /v1/usage · MONTHLY_BUDGET_USD · cached prompt · 1568 px · same photo free</text>
+  <text class="f" x="672" y="915">src/usage.ts → services/api/data/usage.jsonl (no images)</text>
 
   <!-- ===== Column C: external + dev tools ===== -->
   <rect class="ext" x="1245" y="300" width="230" height="110" rx="12"/>
@@ -214,9 +214,9 @@
   <text class="col" x="910" y="910">Key facts</text>
   <text class="d" x="910" y="936">• Photos live on the phone. The server never saves or logs them.</text>
   <text class="d" x="910" y="958">• Secrets in .env at the repo root (gitignored): API key, app secret.</text>
-  <text class="d" x="910" y="980">• Tests: Exam 1 8/8 caught, DE sheets 4/4, 0 false flags; ~13–17 s, ~3.5¢/page.</text>
+  <text class="d" x="910" y="980">• Tests: Exam 1 8/8 caught, DE sheets 4/4, 0 false flags; ~12 s, ~2.5¢/page.</text>
   <text class="d" x="910" y="1002">• Plan, decisions and results: docs/PLAN.md</text>
   <text class="d" x="910" y="1024">• Setup and commands: README.md</text>
-  <text class="d" x="910" y="1046">• Phone → server over USB: adb reverse tcp:8787 tcp:8787 (JDK 17 to build)</text>
+  <text class="d" x="910" y="1046">• Phone → server: Tailscale https://ty-laptop…ts.net (or USB + adb reverse)</text>
   </g>
 </svg>

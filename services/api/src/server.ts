@@ -6,6 +6,7 @@ import { CasWorker } from './cas';
 import { loadEnv, serverConfig } from './config';
 import { claudeModelCall } from './grader';
 import { TutorModelSchema } from './tutor';
+import { UsageLog } from './usage';
 
 loadEnv();
 const config = serverConfig();
@@ -18,7 +19,8 @@ if (!config.sharedSecret && process.env.ALLOW_NO_AUTH !== '1') {
 const checker = new CasWorker();
 const client = new Anthropic();
 const tutorCall = claudeModelCall(client, config, { schema: TutorModelSchema, effort: config.tutorEffort });
-const app = createApp(config, claudeModelCall(client, config), checker, tutorCall);
+const usage = new UsageLog(config.usageLogPath);
+const app = createApp(config, { call: claudeModelCall(client, config), tutorCall, checker, usage });
 process.on('exit', () => checker.close());
 
 serve({ fetch: app.fetch, port: config.port }, (info) => {

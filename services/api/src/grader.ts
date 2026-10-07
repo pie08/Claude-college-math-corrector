@@ -9,7 +9,7 @@ import type { Effort, GraderConfig } from './config';
 import type { PreparedImage } from './image';
 import { renderMathSvg } from './math';
 import { ModelGradeSchema, type ModelGrade } from './modelOutput';
-import { estimateCost } from './pricing';
+import { estimateCost, totalInputTokens } from './pricing';
 import { SYSTEM_PROMPT, userPrompt } from './prompt';
 import { validateModelGrade } from './validate';
 
@@ -47,7 +47,9 @@ export function claudeModelCall(
     const stream = client.beta.messages.stream({
       model: config.model,
       max_tokens: MAX_TOKENS,
-      system,
+      // The instructions never change, so they're cached: pages graded within
+      // a few minutes of each other pay 10% for them instead of full price.
+      system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
       messages,
       output_config: { effort: output.effort ?? config.effort, format },
       // If a safety classifier wrongly declines the page, Anthropic re-runs it
@@ -98,9 +100,9 @@ export async function gradePage(
     });
 
     servedBy = response.model;
-    inputTokens += response.usage.input_tokens;
+    inputTokens += totalInputTokens(response.usage);
     outputTokens += response.usage.output_tokens;
-    cost += estimateCost(response.model, response.usage.input_tokens, response.usage.output_tokens);
+    cost += estimateCost(response.model, response.usage);
 
     if (response.stop_reason === 'refusal') {
       throw new GradeError('model_refused', "This page couldn't be graded. Try a photo with just the math work.");

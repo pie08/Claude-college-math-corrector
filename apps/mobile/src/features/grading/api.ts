@@ -147,6 +147,8 @@ export function describeGradingError(error: GradingError): { title: string; body
       };
     case 'unauthorized':
       return { title: 'Server rejected the app', body: "The app's secret doesn't match the server's API_SHARED_SECRET.", canRetry: false };
+    case 'over_budget':
+      return { title: 'Monthly budget reached', body: error.message, canRetry: false };
     case 'rate_limited':
       return { title: 'Daily limit reached', body: error.message, canRetry: false };
     case 'timeout':

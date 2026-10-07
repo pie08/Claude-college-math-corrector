@@ -15,6 +15,8 @@ const config: ServerConfig = {
   port: 0,
   sharedSecret: 'test-secret',
   tutorEffort: 'medium',
+  monthlyBudget: 0,
+  usageLogPath: '',
   dailyLimit: 2,
   maxUploadBytes: 5_000_000,
 };
@@ -40,7 +42,7 @@ function upload(headers: Record<string, string> = {}, body?: FormData) {
 
 function app(replies = 5) {
   const { call } = fakeCall(Array.from({ length: replies }, () => reply(JSON.stringify(sampleGrade()))));
-  return createApp(config, call);
+  return createApp(config, { call });
 }
 
 describe('POST /v1/grade', () => {

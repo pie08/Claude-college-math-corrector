@@ -84,11 +84,12 @@ describe('solveProblem', () => {
 describe('POST /v1/tutor', () => {
   const serverConfig: ServerConfig = {
     ...config, port: 0, sharedSecret: 'test-secret', tutorEffort: 'medium', dailyLimit: 5, maxUploadBytes: 5_000_000,
+    monthlyBudget: 0, usageLogPath: '',
   };
 
   async function request(form: FormData) {
     const { call } = fakeCall([reply(JSON.stringify(solution()))]);
-    const app = createApp(serverConfig, call, undefined, call);
+    const app = createApp(serverConfig, { call });
     return app.request(new Request('http://test/v1/tutor', { method: 'POST', headers: { authorization: 'Bearer test-secret' }, body: form }));
   }
 

@@ -20,9 +20,10 @@ calculus work through a small grading server that calls Claude.
 - Live grading (`npm run grade`, `npm run eval`) costs real API money: say the
   expected cost before running large sweeps.
 - Run `npm run typecheck`, `npm run lint` and `npm test` before committing.
-- **User request:** once the app is almost complete (start of Phase 6), add
-  differential equations support. Details in `docs/PLAN.md` → "To do near
-  the end: differential equations".
-- **User requests, after Phase 6:** Phase 7 usage tracker + cost reduction,
-  Phase 8 step-by-step tutor that works out a selected problem. Details in
-  `docs/PLAN.md`.
+- All eight planned phases are done (2026-10-06): differential equations
+  (Phase 6), step-by-step tutor (Phase 8), usage tracker + cost reduction
+  (Phase 7). Results and decisions are in `docs/PLAN.md`.
+- Hosting: Tailscale (`tailscale serve`) from the user's PC for now; the user
+  plans to move the server to a Raspberry Pi in their dorm.
+- Cost changes must be measured with `npm run eval` (Exam 1 + DE sets) and
+  must not lower accuracy.

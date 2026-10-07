@@ -1,9 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import type { UsageSummary } from '@calc/shared';
 import Constants from 'expo-constants';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useCurrentUnit } from '@/features/settings/currentUnit';
 import { UNITS } from '@/features/settings/units';
+import { fetchUsage } from '@/features/usage/api';
+import { budgetState, describePeriod, formatDollars } from '@/features/usage/format';
 import { radius, spacing, useAppTheme } from '@/theme';
 
 type Row = { label: string; value: string };
@@ -28,6 +33,7 @@ export default function SettingsScreen() {
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
       <UnitPicker />
+      <Usage />
       {SECTIONS.map((section) => (
         <View key={section.title} style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textMuted }]} accessibilityRole="header">
@@ -50,6 +56,87 @@ export default function SettingsScreen() {
       ))}
       <Text style={[styles.version, { color: colors.textMuted }]}>Calculus Tutor {version}</Text>
     </ScrollView>
+  );
+}
+
+/** Pages, solutions and dollars so far, from the server; refreshed each time Settings opens. */
+function Usage() {
+  const { colors } = useAppTheme();
+  const [summary, setSummary] = useState<UsageSummary | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      const controller = new AbortController();
+      fetchUsage(controller.signal)
+        .then((s) => {
+          setSummary(s);
+          setFailed(false);
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) setFailed(true);
+        });
+      return () => controller.abort();
+    }, []),
+  );
+
+  const budget = summary ? budgetState(summary) : null;
+  const budgetColor = budget?.level === 'ok' ? colors.primary : budget?.level === 'near' ? colors.unclear : colors.error;
+  const rows = summary
+    ? [
+        { label: 'Today', value: describePeriod(summary.today) },
+        { label: 'This month', value: describePeriod(summary.month) },
+        { label: 'All time', value: describePeriod(summary.all_time) },
+        ...(summary.avg_page_cost_usd !== null ? [{ label: 'Per page (avg)', value: formatDollars(summary.avg_page_cost_usd) }] : []),
+      ]
+    : [];
+
+  return (
+    <View style={styles.section}>
+      <Text style={[styles.sectionTitle, { color: colors.textMuted }]} accessibilityRole="header">
+        Usage
+      </Text>
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        {!summary ? (
+          <View style={styles.row}>
+            {failed ? (
+              <Text style={[styles.rowLabel, { color: colors.textMuted }]}>{"Can't reach the grading server"}</Text>
+            ) : (
+              <ActivityIndicator color={colors.primary} />
+            )}
+          </View>
+        ) : (
+          rows.map((row, i) => (
+            <View key={row.label} style={[styles.row, i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border }]}>
+              <Text style={[styles.rowLabel, { color: colors.text }]}>{row.label}</Text>
+              <Text style={[styles.rowValue, { color: colors.textMuted }]}>{row.value}</Text>
+            </View>
+          ))
+        )}
+        {budget ? (
+          <View style={[styles.budget, { borderTopColor: colors.border }]}>
+            <View style={styles.budgetLabels}>
+              <Text style={[styles.rowLabel, { color: colors.text }]}>Monthly budget</Text>
+              <Text style={[styles.rowValue, { color: budget.level === 'ok' ? colors.textMuted : budgetColor }]}>{budget.label}</Text>
+            </View>
+            <View
+              style={[styles.bar, { backgroundColor: colors.surfaceAlt }]}
+              accessibilityRole="progressbar"
+              accessibilityValue={{ min: 0, max: 100, now: Math.round(budget.fraction * 100) }}
+            >
+              <View style={[styles.barFill, { width: `${budget.fraction * 100}%`, backgroundColor: budgetColor }]} />
+            </View>
+          </View>
+        ) : null}
+      </View>
+      <Text style={[styles.footer, { color: colors.textMuted }]}>
+        {budget?.level === 'over'
+          ? "This month's budget is used up, so checking pages is paused until next month (or until the budget is raised on the server)."
+          : budget?.level === 'near'
+            ? 'Most of this month’s budget is used.'
+            : 'Estimated from what each page and solution cost. Opening a saved page is free.'}
+      </Text>
+    </View>
   );
 }
 
@@ -122,6 +209,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     flexShrink: 1,
     textAlign: 'right',
+  },
+  budget: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingVertical: spacing.md,
+    gap: spacing.sm,
+  },
+  budgetLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  bar: {
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  barFill: {
+    height: 8,
+    borderRadius: 4,
   },
   footer: {
     fontSize: 13,

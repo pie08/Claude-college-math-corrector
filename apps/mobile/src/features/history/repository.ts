@@ -1,4 +1,4 @@
-import { GradeResultSchema, type GradeResult } from '@calc/shared';
+import { GradeResultSchema, TutorResultSchema, type GradeResult, type TutorResult } from '@calc/shared';
 import { Directory, File, Paths } from 'expo-file-system';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
@@ -127,6 +127,23 @@ export async function listCorrections(db: SQLiteDatabase): Promise<SavedCorrecti
 
 export async function setReviewed(db: SQLiteDatabase, correctionId: string, reviewed: boolean): Promise<void> {
   await db.runAsync('UPDATE corrections SET reviewed = ? WHERE id = ?', reviewed ? 1 : 0, correctionId);
+}
+
+/** A saved step-by-step solution for one problem on a scan, or null. */
+export async function getTutorSolution(db: SQLiteDatabase, scanId: string, label: string): Promise<TutorResult | null> {
+  const row = await db.getFirstAsync<{ result_json: string }>(
+    'SELECT result_json FROM tutor_solutions WHERE scan_id = ? AND problem_label = ?', scanId, label,
+  );
+  if (!row) return null;
+  const parsed = TutorResultSchema.safeParse(JSON.parse(row.result_json));
+  return parsed.success ? parsed.data : null;
+}
+
+export async function saveTutorSolution(db: SQLiteDatabase, scanId: string, solution: TutorResult): Promise<void> {
+  await db.runAsync(
+    'INSERT OR REPLACE INTO tutor_solutions (scan_id, problem_label, created_at, result_json) VALUES (?, ?, ?, ?)',
+    scanId, solution.label, Date.now(), JSON.stringify(solution),
+  );
 }
 
 /** Deletes a scan, its corrections (cascade) and its photo. */

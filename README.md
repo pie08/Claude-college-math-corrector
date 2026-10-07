@@ -14,13 +14,15 @@ of every phase.
 
 ![App diagram](app-diagram.png)
 
-**Status: Phase 6 of 8.** Scan or pick a page, crop it, tap "Check my work",
+**Status: Phases 1–6 and 8 done; Phase 7 next.** Scan or pick a page, crop it, tap "Check my work",
 and the page comes back with red marks on mistakes; tap a mark for the
 explanation and fix in real math notation. Fixes are double-checked by a math
 engine (SymPy), and boxes are snapped to your handwriting. Every graded page is
 saved on the phone: reopen it from History, and study all your mistakes in
 Corrections. Pick your current unit in Settings. Differential equations are
-checked too, including plugging solutions back into the equation.
+checked too, including plugging solutions back into the equation. Tap
+"Work out a problem step by step" to see any problem on the page solved one
+step at a time, starting from where your work went off track.
 
 | Phase | Scope | Status |
 | --- | --- | --- |
@@ -31,7 +33,7 @@ checked too, including plugging solutions back into the equation.
 | 5 | Unit selector, SymPy verification, box snapping, error states, hosting | Done |
 | 6 | Differential equations support, on-device testing, known limitations | Done |
 | 7 | Usage tracker (pages and dollars) and cost reduction | |
-| 8 | Step-by-step tutor: work out a selected problem | |
+| 8 | Step-by-step tutor: work out a selected problem | Done |
 
 ## Repository layout
 
@@ -55,6 +57,8 @@ services/api/               Grading server (Node/TypeScript, Hono, Anthropic SDK
   scripts/grade.ts          Command-line grader that saves annotated copies
   scripts/eval.ts           Scores the grader against answer keys
   scripts/make-de-pages.ts  Draws stand-in differential-equation test pages
+  scripts/tutor.ts          Works out one problem from the command line
+  src/tutor.ts              Step-by-step tutor: POST /v1/tutor
   test/fixtures/pages/      Test pages and answer keys (local only, gitignored)
 services/cas/               Python SymPy checker (cas_worker.py) and its tests
 Dockerfile                  Container image for hosting the server
@@ -186,6 +190,7 @@ Without it the server still grades; fixes just aren't double-checked
 npm run api                                   # dev server on http://localhost:8787
 npm run grade -- path/to/photo.jpg            # grade photos (or a folder) from the command line
 npm run eval -- --set exam1 --efforts high    # score against answers-exam1.md (also: --set de)
+npm run tutor -- page.jpg --label 2a          # work out one problem step by step (~2¢)
 ```
 
 `grade` and `eval` save each result's JSON and an annotated copy of the page
@@ -253,6 +258,25 @@ npm run typecheck   # tsc
 npm run lint        # ESLint (eslint-config-expo)
 npm test            # Jest (app) and Vitest (server) unit tests; no API calls
 ```
+
+## Phase 8 test checklist
+
+1. **From a mistake:** open a graded page with a mistake, tap the mark, then
+   "Work out problem N step by step". The tutor screen shows "Working out
+   problem N" for about 10–20 s.
+2. **Steps:** one step shows at first; "Next step (2/5)" reveals the next,
+   "Show all" reveals everything. Math is in real notation.
+3. **Off track:** the intro says where your work went wrong, and that step
+   has an amber outline with "Your work went off track here".
+4. **Answer:** after the last step, the green Answer box shows the result and,
+   when it could be checked, "Checked by the math engine".
+5. **Any problem:** on the results panel, "Work out a problem step by step"
+   has a chip for every problem (red outline = had a mistake). Pick one
+   without a mistake: no off-track step, just the plan and the steps.
+6. **Saved:** go back and open the same problem again. It opens instantly
+   with all steps shown (no second charge). Deleting the scan removes it.
+7. **Missing info:** pick a graph-based problem (like 1f on the exam). If the
+   photo isn't enough, it says what's missing instead of guessing.
 
 ## Phase 6 test checklist
 

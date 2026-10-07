@@ -11,6 +11,7 @@
     "api": "npm --workspace services/api run dev",
     "grade": "npm --workspace services/api run grade --",
     "eval": "npm --workspace services/api run eval --",
+    "tutor": "npm --workspace services/api run tutor --",
     "diagram": "node scripts/render-diagram.mjs",
     "typecheck": "npm --workspaces --if-present run typecheck",
     "lint": "npm --workspaces --if-present run lint",

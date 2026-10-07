@@ -1,10 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import type { GradeErrorCode, GradeResult, GradeStage, Problem } from '@calc/shared';
+import type { z } from 'zod';
 
 import { tightenBoxes } from './boxes';
 import type { Checker } from './cas';
-import type { GraderConfig } from './config';
+import type { Effort, GraderConfig } from './config';
 import type { PreparedImage } from './image';
 import { renderMathSvg } from './math';
 import { ModelGradeSchema, type ModelGrade } from './modelOutput';
@@ -36,14 +37,19 @@ export type ModelCall = (
   onText: (snapshot: string) => void,
 ) => Promise<Anthropic.Beta.BetaMessage>;
 
-export function claudeModelCall(client: Anthropic, config: GraderConfig): ModelCall {
+export function claudeModelCall(
+  client: Anthropic,
+  config: GraderConfig,
+  output: { schema: z.ZodType; effort?: Effort } = { schema: ModelGradeSchema },
+): ModelCall {
+  const format = zodOutputFormat(output.schema);
   return async ({ system, messages }, onText) => {
     const stream = client.beta.messages.stream({
       model: config.model,
       max_tokens: MAX_TOKENS,
       system,
       messages,
-      output_config: { effort: config.effort, format: zodOutputFormat(ModelGradeSchema) },
+      output_config: { effort: output.effort ?? config.effort, format },
       // If a safety classifier wrongly declines the page, Anthropic re-runs it
       // on its recommended fallback model instead of failing.
       ...(config.refusalFallback ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const } : {}),
@@ -184,14 +190,14 @@ function withMathSvgs(problems: Problem[]): Problem[] {
   }));
 }
 
-function responseText(response: Anthropic.Beta.BetaMessage): string {
+export function responseText(response: Anthropic.Beta.BetaMessage): string {
   return response.content
     .filter((block): block is Anthropic.Beta.BetaTextBlock => block.type === 'text')
     .map((block) => block.text)
     .join('');
 }
 
-function parseJson(text: string): unknown {
+export function parseJson(text: string): unknown {
   try {
     return JSON.parse(text);
   } catch {

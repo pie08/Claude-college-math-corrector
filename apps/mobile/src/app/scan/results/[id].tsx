@@ -12,6 +12,7 @@ import { getScan, type GradedScan } from '@/features/history/repository';
 import { IssueSheet } from '@/features/results/IssueSheet';
 import { marksOf, type Mark } from '@/features/results/marks';
 import { PageOverlay } from '@/features/results/PageOverlay';
+import { tutorableProblems } from '@/features/tutor/context';
 import { radius, spacing, useAppTheme } from '@/theme';
 
 /** Results for a saved scan. `mark` (1-based) opens that mark's explanation right away. */
@@ -63,6 +64,8 @@ export default function ResultsScreen() {
   const unclear = marks.length - mistakes;
   const notes = result.problems.flatMap((p) => p.notation_notes.map((note) => ({ label: p.label, note })));
   const gradable = result.page_status === 'ok';
+  const tutorProblems = tutorableProblems(result);
+  const openTutor = (label: string) => router.push({ pathname: '/scan/tutor', params: { id: scan.id, label } });
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
@@ -116,6 +119,29 @@ export default function ResultsScreen() {
             <MarkRow key={mark.id} mark={mark} onPress={() => setOpen(i)} />
           ))}
 
+          {tutorProblems.length > 0 ? (
+            <View style={styles.notes}>
+              <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Work out a problem step by step</Text>
+              <View style={styles.chips}>
+                {tutorProblems.map((p) => (
+                  <Pressable
+                    key={p.label}
+                    onPress={() => openTutor(p.label)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Work out problem ${p.label} step by step`}
+                    style={({ pressed }) => [
+                      styles.chip,
+                      { borderColor: p.hasMistake ? colors.error : colors.border, opacity: pressed ? 0.7 : 1 },
+                    ]}
+                  >
+                    {p.hasMistake ? <Ionicons name="close-circle" size={14} color={colors.error} /> : null}
+                    <Text style={[styles.chipText, { color: colors.text }]}>{p.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          ) : null}
+
           {notes.length > 0 ? (
             <View style={styles.notes}>
               <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Notation tips</Text>
@@ -136,7 +162,7 @@ export default function ResultsScreen() {
         </View>
       </View>
 
-      <IssueSheet marks={marks} index={open} onChangeIndex={setOpen} />
+      <IssueSheet marks={marks} index={open} onChangeIndex={setOpen} onWorkItOut={(mark) => openTutor(mark.problemLabel)} />
     </View>
   );
 }
@@ -284,6 +310,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  chips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minHeight: 40,
+    minWidth: 48,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    justifyContent: 'center',
+  },
+  chipText: {
+    fontSize: 15,
+    fontWeight: '600',
   },
   note: {
     fontSize: 14,

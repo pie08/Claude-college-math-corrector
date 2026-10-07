@@ -93,7 +93,7 @@ UI rules:
 | 5 | Unit selector, SymPy verification, box snapping (ink-based), error states, hosting the server | Done (hosting: Dockerfile ready, provider not chosen yet) |
 | 6 | **Differential equations support** (once the app is almost complete), then device testing on the Pixel 9 and known limitations | Done |
 | 7 | **Usage tracker + cost reduction** (requested 2026-10-06) | |
-| 8 | **Step-by-step tutor:** work out a problem you select (requested 2026-10-06) | |
+| 8 | **Step-by-step tutor:** work out a problem you select (requested 2026-10-06) | Done (built before Phase 7, at the user's request) |
 
 ### Phase 6 notes (2026-10-06)
 
@@ -158,7 +158,30 @@ must not drop):
 - Trim output: shorter explanations and notation notes where it doesn't hurt.
 - Run the `claude-api` skill's `cost-optimize` workflow for a ranked list.
 
-### Phase 8: step-by-step tutor (requested 2026-10-06)
+### Phase 8 notes (2026-10-06)
+
+- **Endpoint:** `POST /v1/tutor` (multipart: the page photo, a `context` JSON
+  with the problem label, the grader's transcription of it and the mistakes
+  found, optional unit). The photo is sent again so Claude sees the printed
+  question, given values and graphs; that costs ~0.3¢ of input and is far
+  more reliable than the transcription alone. Shares the daily request cap.
+- **Model call:** same model, effort `medium` (`TUTOR_EFFORT`), structured
+  output `{solvable, intro, off_track_step, steps[{title, math, explanation}],
+  final_answer, cas_check}`, one retry on invalid JSON. The final answer goes
+  through the SymPy checker (`ode_solution` too). Math is rendered to SVG.
+- **Measured:** exam 2a (with its mistake) 10 s, 1.9¢, followed the
+  student's approach and pointed at the step that went wrong, answer -22
+  verified; DE worksheet problem 3, 7.5 s, 2.0¢, answer y = x² + Cx verified.
+- **App:** "Work out a problem step by step" chips on the results panel (red
+  outline = problem with a mistake), and "Work out problem N step by step" in
+  the mistake sheet. `scan/tutor.tsx` reveals one step at a time ("Next
+  step" / "Show all"), outlines the off-track step in amber, and ends with the
+  answer and its math-engine badge. Solutions are saved per scan and problem
+  (`tutor_solutions`, migration 2), so reopening one is free.
+- Not built: photographing or typing a single equation without grading a
+  page first. Easy to add later on the same endpoint.
+
+### Original Phase 8 plan (requested 2026-10-06)
 
 A "Show me how" button that works out a problem the student selects, like a
 tutor at the board:

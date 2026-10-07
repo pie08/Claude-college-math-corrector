@@ -14,6 +14,7 @@ const config: ServerConfig = {
   minSharpness: 0,
   port: 0,
   sharedSecret: 'test-secret',
+  tutorEffort: 'medium',
   dailyLimit: 2,
   maxUploadBytes: 5_000_000,
 };

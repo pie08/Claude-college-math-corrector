@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1080" viewBox="0 0 1500 1080" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1252" viewBox="0 0 1500 1252" font-family="Segoe UI, Helvetica, Arial, sans-serif">
   <!--
     App diagram. Update at the end of every phase (see CLAUDE.md), then run
     `npm run diagram` to regenerate app-diagram.png.
@@ -32,11 +32,11 @@
     </marker>
   </defs>
 
-  <rect class="bg" width="1500" height="1080"/>
+  <rect class="bg" width="1500" height="1252"/>
 
   <!-- Header -->
   <text class="title" x="40" y="52">Calculus Tutor: how the app works</text>
-  <text class="subtitle" x="40" y="78">Updated after Phase 6 (2026-10-06). Phases: 1 capture ✓ · 2 server ✓ · 3 overlay ✓ · 4 history ✓ · 5 unit, SymPy, boxes ✓ · 6 diff. equations ✓ · 8 step-by-step tutor (next) · 7 usage + cost</text>
+  <text class="subtitle" x="40" y="78">Updated after Phase 8 (2026-10-06). Phases: 1 capture ✓ · 2 server ✓ · 3 overlay ✓ · 4 history ✓ · 5 unit, SymPy, boxes ✓ · 6 diff. equations ✓ · 8 step-by-step tutor ✓ · 7 usage + cost (next)</text>
 
   <!-- Legend -->
   <rect class="built" x="1085" y="30" width="22" height="16" rx="3"/><text class="d" x="1114" y="43">Built</text>
@@ -45,7 +45,7 @@
   <rect class="ext" x="1395" y="30" width="22" height="16" rx="3"/><text class="d" x="1424" y="43">External</text>
 
   <!-- ===== Column A: phone app ===== -->
-  <rect class="panel" x="25" y="100" width="560" height="760" rx="14"/>
+  <rect class="panel" x="25" y="100" width="560" height="932" rx="14"/>
   <text class="col" x="45" y="130">📱 Phone app</text>
   <text class="colsub" x="185" y="130">apps/mobile · Expo + React Native · Pixel 9</text>
 
@@ -90,6 +90,16 @@
   <text class="d" x="62" y="813">(blurry, offline, 120 s timeout) · Dockerfile to host the server</text>
   <text class="f" x="62" y="830">(tabs)/settings.tsx · features/settings/ · features/grading/api.ts</text>
 
+  <rect class="built" x="45" y="856" width="520" height="70" rx="10"/>
+  <text class="h" x="62" y="882">9. Step-by-step tutor</text>
+  <text class="d" x="62" y="902">Pick a problem (or "Work it out" on a mark) → steps one at a time; saved</text>
+  <text class="f" x="62" y="919">scan/tutor.tsx · features/tutor/ (api, context)</text>
+
+  <rect class="next" x="45" y="942" width="520" height="70" rx="10"/>
+  <text class="h" x="62" y="968">10. Usage: pages, tutor requests, dollars</text>
+  <text class="d" x="62" y="988">Today / this month in Settings; cost reduction measured with the eval</text>
+  <text class="tag" x="490" y="968" fill="#3651d4">PHASE 7</text>
+
   <!-- flow arrows within the app -->
   <path class="flow" d="M305,218 V232"/>
   <path class="flow" d="M305,304 V318"/>
@@ -97,9 +107,10 @@
   <path class="flow" d="M305,476 V490"/>
   <path class="flow" d="M305,648 V662"/>
   <path class="flow" d="M305,734 V748"/>
+  <path class="flow" d="M305,840 V854"/>
 
   <!-- ===== Column B: grading server ===== -->
-  <rect class="panel" x="635" y="100" width="560" height="760" rx="14"/>
+  <rect class="panel" x="635" y="100" width="560" height="932" rx="14"/>
   <text class="col" x="655" y="130">🖥 Grading server</text>
   <text class="colsub" x="822" y="130">services/api · Node + TypeScript + Hono</text>
 
@@ -146,6 +157,16 @@
   <path class="flow" d="M915,578 V592"/>
   <path class="flow" d="M915,664 V678"/>
 
+  <rect class="built" x="655" y="766" width="520" height="70" rx="10"/>
+  <text class="h" x="672" y="792">H. POST /v1/tutor: work out one problem</text>
+  <text class="d" x="672" y="812">Photo + problem label + mistakes → Claude (medium effort) → SymPy checks answer</text>
+  <text class="f" x="672" y="829">src/tutor.ts · npm run tutor -- &lt;img&gt; --label 2a</text>
+
+  <rect class="next" x="655" y="852" width="520" height="70" rx="10"/>
+  <text class="h" x="672" y="878">I. Usage + cost reduction</text>
+  <text class="d" x="672" y="898">Every request's tokens and cost returned to the app; cheaper calls, same accuracy</text>
+  <text class="tag" x="1090" y="878" fill="#3651d4">PHASE 7</text>
+
   <!-- ===== Column C: external + dev tools ===== -->
   <rect class="ext" x="1245" y="300" width="230" height="110" rx="12"/>
   <text class="h" x="1262" y="328">Anthropic API</text>
@@ -179,6 +200,7 @@
   <text class="lbl" font-size="12" transform="translate(626,604) rotate(-90)">results</text>
 
   <!-- ===== Bottom: contract + key facts ===== -->
+  <g transform="translate(0,172)">
   <rect class="panel" x="25" y="880" width="845" height="175" rx="14"/>
   <text class="col" x="45" y="910">What the server sends back (GradeResult)</text>
   <text class="d" x="45" y="936">Streamed first as progress events: received → checking_image → reading → writing (n problems) → validating (incl. math check)</text>
@@ -196,4 +218,5 @@
   <text class="d" x="910" y="1002">• Plan, decisions and results: docs/PLAN.md</text>
   <text class="d" x="910" y="1024">• Setup and commands: README.md</text>
   <text class="d" x="910" y="1046">• Phone → server over USB: adb reverse tcp:8787 tcp:8787 (JDK 17 to build)</text>
+  </g>
 </svg>

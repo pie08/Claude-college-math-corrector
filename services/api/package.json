@@ -8,6 +8,7 @@
     "start": "tsx src/server.ts",
     "grade": "tsx scripts/grade.ts",
     "eval": "tsx scripts/eval.ts",
+    "tutor": "tsx scripts/tutor.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

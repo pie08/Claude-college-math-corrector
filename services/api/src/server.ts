@@ -5,6 +5,7 @@ import { createApp } from './app';
 import { CasWorker } from './cas';
 import { loadEnv, serverConfig } from './config';
 import { claudeModelCall } from './grader';
+import { TutorModelSchema } from './tutor';
 
 loadEnv();
 const config = serverConfig();
@@ -15,7 +16,9 @@ if (!config.sharedSecret && process.env.ALLOW_NO_AUTH !== '1') {
 }
 
 const checker = new CasWorker();
-const app = createApp(config, claudeModelCall(new Anthropic(), config), checker);
+const client = new Anthropic();
+const tutorCall = claudeModelCall(client, config, { schema: TutorModelSchema, effort: config.tutorEffort });
+const app = createApp(config, claudeModelCall(client, config), checker, tutorCall);
 process.on('exit', () => checker.close());
 
 serve({ fetch: app.fetch, port: config.port }, (info) => {

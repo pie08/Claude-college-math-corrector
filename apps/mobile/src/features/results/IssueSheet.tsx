@@ -16,13 +16,15 @@ type Props = {
   /** Index into `marks` of the open mark, or null when closed. */
   index: number | null;
   onChangeIndex: (index: number | null) => void;
+  /** Opens the step-by-step tutor for this mark's problem. */
+  onWorkItOut?: (mark: Mark) => void;
 };
 
 /**
  * Bottom sheet for one mark: what you wrote, what went wrong, and the fix.
  * Previous/Next step through every mark on the page.
  */
-export function IssueSheet({ marks, index, onChangeIndex }: Props) {
+export function IssueSheet({ marks, index, onChangeIndex, onWorkItOut }: Props) {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const mark = index === null ? undefined : marks[index];
@@ -69,6 +71,18 @@ export function IssueSheet({ marks, index, onChangeIndex }: Props) {
               <Text style={[styles.note, { color: colors.textMuted }]}>
                 Retake the photo closer and in better light to get this step checked.
               </Text>
+            ) : null}
+
+            {onWorkItOut && mark.status === 'incorrect' ? (
+              <Button
+                label={`Work out problem ${mark.problemLabel} step by step`}
+                icon="school-outline"
+                variant="ghost"
+                onPress={() => {
+                  close();
+                  onWorkItOut(mark);
+                }}
+              />
             ) : null}
           </ScrollView>
 

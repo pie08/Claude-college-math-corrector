@@ -1,4 +1,4 @@
-import type { GradeErrorCode, GradeEvent, GradeResult } from '@calc/shared';
+import { TutorContextSchema, type GradeErrorCode, type GradeEvent, type GradeResult } from '@calc/shared';
 import { Hono, type Context } from 'hono';
 import { streamSSE } from 'hono/streaming';
 
@@ -6,6 +6,7 @@ import type { Checker } from './cas';
 import type { ServerConfig } from './config';
 import { gradePage, GradeError, type ModelCall, type Progress } from './grader';
 import { BadImageError, prepareImage } from './image';
+import { solveProblem } from './tutor';
 
 const STATUS: Record<GradeErrorCode, 400 | 401 | 413 | 422 | 429 | 500 | 502> = {
   unauthorized: 401,
@@ -47,8 +48,12 @@ export class DailyCounter {
  * `Accept: text/event-stream` to get progress events followed by the result;
  * otherwise the response is the GradeResult JSON. Images are processed in
  * memory and never written to disk or logged.
+ *
+ * `POST /v1/tutor` (multipart: `image`, `context` JSON (TutorContext), optional
+ * `unit`) returns a TutorResult: one problem on the page worked out step by
+ * step. Uses `tutorCall` (defaults to `call`).
  */
-export function createApp(config: ServerConfig, call: ModelCall, checker?: Checker): Hono {
+export function createApp(config: ServerConfig, call: ModelCall, checker?: Checker, tutorCall: ModelCall = call): Hono {
   const app = new Hono();
   const counter = new DailyCounter(config.dailyLimit);
 
@@ -98,6 +103,43 @@ export function createApp(config: ServerConfig, call: ModelCall, checker?: Check
 
     try {
       return c.json(await run(() => {}));
+    } catch (error) {
+      const { code, message } = describe(error);
+      return fail(c, code, message);
+    }
+  });
+
+  app.post('/v1/tutor', async (c) => {
+    if (config.sharedSecret && c.req.header('authorization') !== `Bearer ${config.sharedSecret}`) {
+      return fail(c, 'unauthorized', 'Missing or wrong app secret.');
+    }
+    const length = Number(c.req.header('content-length') ?? 0);
+    if (length > config.maxUploadBytes) return fail(c, 'bad_image', 'That photo is too large.');
+
+    let form: Record<string, string | File>;
+    try {
+      form = (await c.req.parseBody()) as Record<string, string | File>;
+    } catch {
+      return fail(c, 'bad_request', 'Expected a multipart form with "image" and "context".');
+    }
+    const file = form.image;
+    let context: unknown;
+    try {
+      context = typeof form.context === 'string' ? JSON.parse(form.context) : undefined;
+    } catch {
+      context = undefined;
+    }
+    const parsed = TutorContextSchema.safeParse(context);
+    if (!(file instanceof File) || !parsed.success) {
+      return fail(c, 'bad_request', 'Expected a multipart form with "image" and a valid "context".');
+    }
+    const unit = typeof form.unit === 'string' && form.unit.trim() ? form.unit.trim().slice(0, 100) : undefined;
+
+    if (!counter.take()) return fail(c, 'rate_limited', "You've reached today's limit. Try again tomorrow.");
+
+    try {
+      const image = await prepareImage(Buffer.from(await file.arrayBuffer()), config.maxImageEdge);
+      return c.json(await solveProblem(image, parsed.data, { unit }, { call: tutorCall, config, checker }));
     } catch (error) {
       const { code, message } = describe(error);
       return fail(c, code, message);

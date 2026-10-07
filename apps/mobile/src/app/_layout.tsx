@@ -27,6 +27,7 @@ export default function RootLayout() {
             }}
           />
           <Stack.Screen name="scan/review" options={{ title: 'Ready to check' }} />
+          <Stack.Screen name="scan/tutor" options={{ title: 'Step by step' }} />
           <Stack.Screen name="scan/grading" options={{ title: 'Checking', headerBackVisible: false, gestureEnabled: false }} />
           <Stack.Screen
             name="scan/results/[id]"

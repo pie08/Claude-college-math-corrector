@@ -35,6 +35,16 @@ const MIGRATIONS: string[] = [
   CREATE INDEX corrections_scan ON corrections (scan_id);
   CREATE INDEX corrections_created ON corrections (created_at DESC);
   `,
+  // 2: step-by-step solutions, one per problem on a scan, so reopening one is free.
+  `
+  CREATE TABLE tutor_solutions (
+    scan_id TEXT NOT NULL REFERENCES scans (id) ON DELETE CASCADE,
+    problem_label TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    result_json TEXT NOT NULL,         -- the full TutorResult
+    PRIMARY KEY (scan_id, problem_label)
+  );
+  `,
 ];
 
 /** Runs on app start (SQLiteProvider onInit): brings the schema up to date. */

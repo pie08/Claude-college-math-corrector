@@ -258,6 +258,9 @@ After changing `apps/mobile/.env`, restart Metro with `--clear`.
 
 ## Standalone app (no cable, no Metro)
 
+Installing on someone else's phone, or on an iPhone: see
+[`docs/INSTALL.md`](docs/INSTALL.md).
+
 Two versions of the app can sit side by side on the phone (set in
 `apps/mobile/app.config.js`):
 

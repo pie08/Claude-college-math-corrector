@@ -18,6 +18,13 @@
     },
     "production": {
       "autoIncrement": true
+    },
+    "standalone": {
+      "distribution": "internal",
+      "environment": "preview",
+      "env": {
+        "APP_VARIANT": "production"
+      }
     }
   }
 }

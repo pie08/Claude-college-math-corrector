@@ -159,8 +159,12 @@ already reads DE work in general, but it needs dedicated support:
   | medium effort instead of high (rejected) | 10/12 | 0 | 7.0 | 2.0 |
 
   1568 px also matched 2048 px on three Pixel photos (same mistakes, same
-  boxes). Medium effort missed two mistakes, so grading stays at high; the
-  tutor uses medium (its answers are SymPy-checked). Total: about 26% cheaper
+  boxes). Medium effort missed two mistakes, so grading stays at high. The
+  tutor also moved to high (user priority: never trade accuracy for cost);
+  with 1568 px images it still costs 1.8–2.5¢ per solution.
+- **DE cost check:** DE worksheet pages cost 2.1–2.5¢ vs 1.5–3.2¢ for exam
+  pages; DE tutor solutions ~1.8¢. Real DE homework has more lines than the
+  generated sheets, so watch Settings → Usage once real pages are graded. Total: about 26% cheaper
   per page with no accuracy loss. Trimming output wasn't done: the
   explanations are the point of the app.
 - Prompt caching only helps when pages are graded within ~5 minutes of each
@@ -199,7 +203,7 @@ must not drop):
   found, optional unit). The photo is sent again so Claude sees the printed
   question, given values and graphs; that costs ~0.3¢ of input and is far
   more reliable than the transcription alone. Shares the daily request cap.
-- **Model call:** same model, effort `medium` (`TUTOR_EFFORT`), structured
+- **Model call:** same model, effort `high` (`TUTOR_EFFORT`; was medium until Phase 7), structured
   output `{solvable, intro, off_track_step, steps[{title, math, explanation}],
   final_answer, cas_check}`, one retry on invalid JSON. The final answer goes
   through the SymPy checker (`ode_solution` too). Math is rendered to SVG.

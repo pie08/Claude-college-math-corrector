@@ -159,7 +159,7 @@
 
   <rect class="built" x="655" y="766" width="520" height="70" rx="10"/>
   <text class="h" x="672" y="792">H. POST /v1/tutor: work out one problem</text>
-  <text class="d" x="672" y="812">Photo + problem label + mistakes → Claude (medium effort) → SymPy checks answer</text>
+  <text class="d" x="672" y="812">Photo + problem label + mistakes → Claude (high effort) → SymPy checks answer</text>
   <text class="f" x="672" y="829">src/tutor.ts · npm run tutor -- &lt;img&gt; --label 2a</text>
 
   <rect class="built" x="655" y="852" width="520" height="70" rx="10"/>

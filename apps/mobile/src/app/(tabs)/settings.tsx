@@ -100,7 +100,7 @@ function Usage() {
         {!summary ? (
           <View style={styles.row}>
             {failed ? (
-              <Text style={[styles.rowLabel, { color: colors.textMuted }]}>{"Can't reach the grading server"}</Text>
+              <Text style={[styles.rowLabel, { color: colors.textMuted }]}>{"Can't reach the grading server. Is Tailscale on?"}</Text>
             ) : (
               <ActivityIndicator color={colors.primary} />
             )}

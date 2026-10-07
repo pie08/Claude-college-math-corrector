@@ -28,7 +28,7 @@ export type ServerConfig = GraderConfig & {
   port: number;
   /** Shared secret the app sends as `Authorization: Bearer <secret>`. */
   sharedSecret: string | undefined;
-  /** Effort for the step-by-step tutor (text-heavy, so lower than grading by default). */
+  /** Effort for the step-by-step tutor. High, like grading: accuracy comes before cost. */
   tutorEffort: Effort;
   /** Grading requests allowed per UTC day, across all clients. */
   dailyLimit: number;
@@ -64,7 +64,7 @@ export function serverConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig
     ...graderConfig(env),
     port: Number(env.PORT ?? 8787),
     sharedSecret: env.API_SHARED_SECRET || undefined,
-    tutorEffort: parseEffortEnv(env.TUTOR_EFFORT ?? 'medium', 'TUTOR_EFFORT'),
+    tutorEffort: parseEffortEnv(env.TUTOR_EFFORT ?? 'high', 'TUTOR_EFFORT'),
     dailyLimit: Number(env.DAILY_REQUEST_LIMIT ?? 100),
     maxUploadBytes: Number(env.MAX_UPLOAD_BYTES ?? 15 * 1024 * 1024),
     monthlyBudget: Number(env.MONTHLY_BUDGET_USD ?? 0),

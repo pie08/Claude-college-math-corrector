@@ -142,7 +142,7 @@ export function describeGradingError(error: GradingError): { title: string; body
     case 'network':
       return {
         title: "Can't reach the grading server",
-        body: `${error.message} Check that the server is running (npm run api) and that Tailscale is on, on this phone and the computer.`,
+        body: `${error.message} Check that the server is running (npm run api) and that Tailscale is connected on this phone and the computer.`,
         canRetry: true,
       };
     case 'unauthorized':

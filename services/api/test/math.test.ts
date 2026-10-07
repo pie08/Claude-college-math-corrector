@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { renderMathSvg } from '../src/math';
+import { collectInlineMath, renderInlineMath, renderMathSvg } from '../src/math';
 
 describe('renderMathSvg', () => {
   it('renders LaTeX to a pixel-sized SVG with only elements react-native-svg supports', () => {
@@ -19,5 +19,19 @@ describe('renderMathSvg', () => {
   it('returns null for LaTeX it cannot parse, or empty input', () => {
     expect(renderMathSvg('\\frac{1}{')).toBeNull();
     expect(renderMathSvg('  ')).toBeNull();
+  });
+});
+
+describe('inline math', () => {
+  it('renders each $...$ piece once, with its depth below the baseline', () => {
+    const math = collectInlineMath([String.raw`You wrote $8(f(x)-g(x))$, not $\frac{1}{x}$.`, String.raw`Again $\frac{1}{x}$`, null]);
+    expect(Object.keys(math)).toEqual(['8(f(x)-g(x))', String.raw`\frac{1}{x}`]);
+    expect(math[String.raw`\frac{1}{x}`]!.depth).toBeGreaterThan(0);
+    expect(math['8(f(x)-g(x))']!.svg).toMatch(/^<svg /);
+  });
+
+  it('skips LaTeX that does not parse', () => {
+    expect(renderInlineMath(String.raw`\frac{1}`)).toBeNull();
+    expect(collectInlineMath(['no math here', 'costs $5'])).toEqual({});
   });
 });

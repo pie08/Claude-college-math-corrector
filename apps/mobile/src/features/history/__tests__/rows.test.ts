@@ -31,12 +31,14 @@ function issue(id: string, status: Issue['status'], concept: string): Issue {
     later_steps_note: null,
     verification: 'not_checked',
     bbox_source: 'model',
+  inline_math: {},
   };
 }
 
 const result: GradeResult = {
   page_status: 'ok',
   overall_summary: 's',
+  inline_math: {},
   meta: {} as GradeResult['meta'],
   problems: [
     { id: 'p1', label: '2a', transcription: '', notation_notes: [], final_answer_correct: false, issues: [issue('p1i1', 'incorrect', ' Limit Laws ')] },

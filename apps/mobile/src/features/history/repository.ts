@@ -139,6 +139,10 @@ export async function getTutorSolution(db: SQLiteDatabase, scanId: string, label
   return parsed.success ? parsed.data : null;
 }
 
+export async function deleteTutorSolution(db: SQLiteDatabase, scanId: string, label: string): Promise<void> {
+  await db.runAsync('DELETE FROM tutor_solutions WHERE scan_id = ? AND problem_label = ?', scanId, label);
+}
+
 export async function saveTutorSolution(db: SQLiteDatabase, scanId: string, solution: TutorResult): Promise<void> {
   await db.runAsync(
     'INSERT OR REPLACE INTO tutor_solutions (scan_id, problem_label, created_at, result_json) VALUES (?, ?, ?, ?)',

@@ -32,10 +32,12 @@ function result(problems: { label: string; incorrect?: number; unclear?: number;
     later_steps_note: null,
     verification: 'not_checked' as const,
     bbox_source: 'model' as const,
+    inline_math: {},
   });
   return {
     page_status: 'ok',
     overall_summary: '',
+    inline_math: {},
     meta: {} as GradeResult['meta'],
     problems: problems.map((p, i) => ({
       id: `p${i}`,

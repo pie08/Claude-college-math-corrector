@@ -237,7 +237,8 @@ export function createApp(config: ServerConfig, deps: AppDeps): Hono {
     try {
       const image = await prepareImage(Buffer.from(await file.arrayBuffer()), config.maxImageEdge);
       const key = ResultCache.key('tutor', image.base64, JSON.stringify(parsed.data), unit ?? '');
-      const cached = solutions.get(key);
+      // `fresh` asks for a new solution (the app's "Work it out again").
+      const cached = form.fresh === '1' ? undefined : solutions.get(key);
       if (cached) {
         usage.recordRequest('tutor', { ok: true, cached: true });
         return c.json(cached);

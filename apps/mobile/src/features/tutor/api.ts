@@ -10,7 +10,7 @@ import { buildMultipartBody, type MultipartPart } from '@/features/grading/multi
 export async function requestSolution(
   imageUri: string,
   context: TutorContext,
-  opts: { unit?: string; signal?: AbortSignal } = {},
+  opts: { unit?: string; signal?: AbortSignal; fresh?: boolean } = {},
 ): Promise<TutorResult> {
   if (!apiConfig.secret) throw new GradingError('config', 'The app has no server secret. Set EXPO_PUBLIC_API_SECRET in apps/mobile/.env.');
 
@@ -25,6 +25,7 @@ export async function requestSolution(
     { name: 'context', value: JSON.stringify(context) },
   ];
   if (opts.unit) parts.push({ name: 'unit', value: opts.unit });
+  if (opts.fresh) parts.push({ name: 'fresh', value: '1' });
   const { body, contentType } = buildMultipartBody(parts);
 
   const controller = new AbortController();

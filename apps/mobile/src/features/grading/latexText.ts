@@ -149,9 +149,39 @@ export function latexToText(latex: string): string {
  * into plain text, leaving ordinary sentences untouched.
  */
 export function proseText(text: string): string {
-  // Only real LaTeX (a \command or a ^{...}/_{...} group) is converted; plain
-  // math like "4^(1/2)" or "x^2" is already readable and left alone.
-  return /\\[a-zA-Z]|[\^_]\{/.test(text) ? latexToText(text) : text;
+  // `$...$` pieces are LaTeX. Outside them, only real LaTeX (a \command or a
+  // ^{...}/_{...} group, from results saved before inline math) is converted;
+  // plain math like "4^(1/2)" or "x^2" is already readable and left alone.
+  return text
+    .split(/(\$[^$]+\$)/)
+    .map((part) =>
+      /^\$[^$]+\$$/.test(part)
+        ? latexToText(part.slice(1, -1).trim())
+        : /\\[a-zA-Z]|[\^_]\{/.test(part)
+          ? latexToText(part)
+          : part,
+    )
+    .join('');
+}
+
+export type RichToken =
+  | { kind: 'text'; value: string; spaceAfter: boolean }
+  | { kind: 'math'; latex: string; spaceAfter: boolean };
+
+/**
+ * Splits a sentence into words and `$...$` math pieces, so they can be laid
+ * out side by side and wrap like text. `spaceAfter` says whether whitespace
+ * followed the token (so "$x$." keeps the period attached).
+ */
+export function richTokens(text: string): RichToken[] {
+  const tokens: RichToken[] = [];
+  const pattern = /\$([^$]+)\$|[^\s$]+|\$/g;
+  for (let m = pattern.exec(text); m; m = pattern.exec(text)) {
+    const spaceAfter = /\s/.test(text[pattern.lastIndex] ?? '');
+    if (m[1] !== undefined) tokens.push({ kind: 'math', latex: m[1].trim(), spaceAfter });
+    else tokens.push({ kind: 'text', value: proseText(m[0]), spaceAfter });
+  }
+  return tokens;
 }
 
 /** Adds parentheses unless the expression is a single number or symbol. */

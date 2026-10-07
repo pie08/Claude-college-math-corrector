@@ -6,6 +6,7 @@ import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-n
 
 import { EmptyState } from '@/components/EmptyState';
 import { MathView } from '@/components/MathView';
+import { RichText } from '@/components/RichText';
 import { VerificationBadge } from '@/components/VerificationBadge';
 import { proseText } from '@/features/grading/latexText';
 import { formatWhen } from '@/features/history/format';
@@ -150,9 +151,7 @@ function CorrectionCard({ item, onToggleReviewed }: { item: SavedCorrection; onT
           </View>
         ) : null}
 
-        <Text style={[styles.explanation, { color: colors.textMuted }]} numberOfLines={3}>
-          {proseText(mark.explanation)}
-        </Text>
+        <RichText text={mark.explanation} math={mark.inline_math} style={[styles.explanation, { color: colors.textMuted }]} />
       </Pressable>
 
       <Pressable

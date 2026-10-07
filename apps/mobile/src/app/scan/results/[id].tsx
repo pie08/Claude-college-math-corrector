@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
+import { RichText } from '@/components/RichText';
 import { proseText } from '@/features/grading/latexText';
 import { getScan, type GradedScan } from '@/features/history/repository';
 import { IssueSheet } from '@/features/results/IssueSheet';
@@ -113,7 +114,7 @@ export default function ResultsScreen() {
             />
           ) : null}
 
-          <Text style={[styles.summary, { color: colors.text }]}>{proseText(result.overall_summary)}</Text>
+          <RichText text={result.overall_summary} math={result.inline_math} style={[styles.summary, { color: colors.text }]} />
 
           {marks.map((mark, i) => (
             <MarkRow key={mark.id} mark={mark} onPress={() => setOpen(i)} />
@@ -146,9 +147,7 @@ export default function ResultsScreen() {
             <View style={styles.notes}>
               <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Notation tips</Text>
               {notes.map((n, i) => (
-                <Text key={i} style={[styles.note, { color: colors.textMuted }]}>
-                  {n.label}: {proseText(n.note)}
-                </Text>
+                <RichText key={i} text={`${n.label}: ${n.note}`} math={result.inline_math} style={[styles.note, { color: colors.textMuted }]} />
               ))}
             </View>
           ) : null}

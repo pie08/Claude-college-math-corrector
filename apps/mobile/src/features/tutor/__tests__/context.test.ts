@@ -16,6 +16,7 @@ const issue = (status: Issue['status'], explanation: string): Issue => ({
   later_steps_note: null,
   verification: 'not_checked',
   bbox_source: 'model',
+  inline_math: {},
 });
 
 const result = {
@@ -25,6 +26,7 @@ const result = {
     { id: 'p2', label: '2', transcription: '\int x\,dx', issues: [], notation_notes: [], final_answer_correct: true },
   ],
   overall_summary: '',
+  inline_math: {},
   meta: { model: 'm', effort: 'high', latency_ms: 1, input_tokens: 1, output_tokens: 1, cost_usd: 0, image: { width: 1, height: 1 }, retries: 0, sharpness: 1 },
 } as GradeResult;
 

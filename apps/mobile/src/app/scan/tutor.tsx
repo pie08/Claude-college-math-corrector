@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import type { TutorResult, TutorStep } from '@calc/shared';
+import type { InlineMath, TutorResult, TutorStep } from '@calc/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useRef, useState } from 'react';
@@ -8,10 +8,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { MathView } from '@/components/MathView';
+import { RichText } from '@/components/RichText';
 import { VerificationBadge } from '@/components/VerificationBadge';
 import { describeGradingError, GradingError } from '@/features/grading/api';
 import { proseText } from '@/features/grading/latexText';
-import { getScan, getTutorSolution, saveTutorSolution } from '@/features/history/repository';
+import { deleteTutorSolution, getScan, getTutorSolution, saveTutorSolution } from '@/features/history/repository';
 import { getCurrentUnit } from '@/features/settings/currentUnit';
 import { requestSolution } from '@/features/tutor/api';
 import { tutorContextFor } from '@/features/tutor/context';
@@ -31,6 +32,8 @@ export default function TutorScreen() {
   const [error, setError] = useState<GradingError | null>(null);
   const [shown, setShown] = useState(1);
   const [attempt, setAttempt] = useState(0);
+  // Set by "Work it out again": skip the saved solution and ask for a new one.
+  const [fresh, setFresh] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
   // Scroll to a newly revealed step, but not when a saved solution first opens.
@@ -46,14 +49,14 @@ export default function TutorScreen() {
       if (!scan) throw new GradingError('bad_request', 'This scan was deleted.');
       const context = tutorContextFor(scan.result, label);
       setStatement(context.statement);
-      const saved = await getTutorSolution(db, id, label);
+      const saved = fresh ? null : await getTutorSolution(db, id, label);
       if (saved) {
         setShown(saved.steps.length);
         return saved;
       }
-      const fresh = await requestSolution(scan.imageUri, context, { unit: getCurrentUnit() ?? undefined, signal: controller.signal });
-      await saveTutorSolution(db, id, fresh);
-      return fresh;
+      const solved = await requestSolution(scan.imageUri, context, { unit: getCurrentUnit() ?? undefined, signal: controller.signal, fresh });
+      await saveTutorSolution(db, id, solved);
+      return solved;
     })()
       .then((result) => {
         if (!controller.signal.aborted) setSolution(result);
@@ -67,7 +70,7 @@ export default function TutorScreen() {
       controller.abort();
       clearInterval(timer);
     };
-  }, [db, id, label, attempt]);
+  }, [db, id, label, attempt, fresh]);
 
   if (error) {
     const { title, body, canRetry } = describeGradingError(error);
@@ -121,7 +124,7 @@ export default function TutorScreen() {
       >
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={[styles.label, { color: colors.textMuted }]}>Problem {solution.label}</Text>
-          {statement ? <MathView latex={statement} svg={null} color={colors.text} /> : null}
+          {statement ? <MathView latex={statement} svg={solution.statement_svg} color={colors.text} /> : null}
         </View>
 
         <View
@@ -135,11 +138,13 @@ export default function TutorScreen() {
             size={22}
             color={offTrack !== null || !solution.solvable ? colors.unclear : colors.primary}
           />
-          <Text style={[styles.body, styles.flex, { color: colors.text }]}>{proseText(solution.intro)}</Text>
+          <View style={styles.flex}>
+            <RichText text={solution.intro} math={solution.inline_math} style={[styles.body, { color: colors.text }]} />
+          </View>
         </View>
 
         {solution.steps.slice(0, shown).map((step, i) => (
-          <StepCard key={i} step={step} index={i} offTrack={i === offTrack} />
+          <StepCard key={i} step={step} index={i} offTrack={i === offTrack} math={solution.inline_math} />
         ))}
 
         {allShown && solution.final_answer ? (
@@ -179,16 +184,35 @@ export default function TutorScreen() {
             </View>
           </>
         ) : (
-          <View style={styles.flex}>
-            <Button label="Done" icon="checkmark" onPress={() => router.back()} />
-          </View>
+          <>
+            <View style={styles.flex}>
+              <Button
+                label="Work it out again"
+                icon="refresh"
+                variant="secondary"
+                accessibilityHint="Asks for a new solution (about 2 cents)"
+                onPress={() => {
+                  void deleteTutorSolution(db, id, label);
+                  revealed.current = false;
+                  setSolution(null);
+                  setShown(1);
+                  setElapsed(0);
+                  setFresh(true);
+                  setAttempt((n) => n + 1);
+                }}
+              />
+            </View>
+            <View style={styles.flex}>
+              <Button label="Done" icon="checkmark" onPress={() => router.back()} />
+            </View>
+          </>
         )}
       </View>
     </View>
   );
 }
 
-function StepCard({ step, index, offTrack }: { step: TutorStep; index: number; offTrack: boolean }) {
+function StepCard({ step, index, offTrack, math }: { step: TutorStep; index: number; offTrack: boolean; math: InlineMath }) {
   const { colors } = useAppTheme();
   return (
     <View
@@ -209,7 +233,7 @@ function StepCard({ step, index, offTrack }: { step: TutorStep; index: number; o
         </Text>
       </View>
       {step.math ? <MathView latex={step.math} svg={step.math_svg} color={colors.text} /> : null}
-      <Text style={[styles.body, { color: colors.textMuted }]}>{proseText(step.explanation)}</Text>
+      <RichText text={step.explanation} math={math} style={[styles.body, { color: colors.textMuted }]} />
     </View>
   );
 }

@@ -5,8 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { MathView } from '@/components/MathView';
+import { RichText } from '@/components/RichText';
 import { VerificationBadge } from '@/components/VerificationBadge';
-import { proseText } from '@/features/grading/latexText';
 import { radius, spacing, useAppTheme } from '@/theme';
 
 import type { Mark } from './marks';
@@ -49,7 +49,7 @@ export function IssueSheet({ marks, index, onChangeIndex, onWorkItOut }: Props) 
             </Section>
 
             <Section label={mark.status === 'incorrect' ? 'What went wrong' : "What I couldn't read"}>
-              <Text style={[styles.body, { color: colors.text }]}>{proseText(mark.explanation)}</Text>
+              <RichText text={mark.explanation} math={mark.inline_math} style={[styles.body, { color: colors.text }]} />
             </Section>
 
             {mark.correction ? (
@@ -64,7 +64,7 @@ export function IssueSheet({ marks, index, onChangeIndex, onWorkItOut }: Props) 
             ) : null}
 
             {mark.later_steps_note ? (
-              <Text style={[styles.note, { color: colors.textMuted }]}>{proseText(mark.later_steps_note)}</Text>
+              <RichText text={mark.later_steps_note} math={mark.inline_math} style={[styles.note, { color: colors.textMuted }]} />
             ) : null}
 
             {mark.status === 'unclear' ? (

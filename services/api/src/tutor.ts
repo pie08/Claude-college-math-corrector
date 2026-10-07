@@ -6,7 +6,7 @@ import type { Checker } from './cas';
 import type { GraderConfig } from './config';
 import { GradeError, parseJson, responseText, type ModelCall } from './grader';
 import type { PreparedImage } from './image';
-import { renderMathSvg } from './math';
+import { collectInlineMath, renderMathSvg } from './math';
 import { CasCheckSchema } from './modelOutput';
 import { estimateCost, totalInputTokens } from './pricing';
 
@@ -25,18 +25,18 @@ export const TUTOR_PROMPT = `You are a patient calculus tutor. The student photo
 Find the problem by its label on the page. Use the printed question and anything it refers to on the page (given values, a graph, earlier parts). If the page doesn't show enough to solve it, set solvable to false, explain what's missing in intro, and leave steps empty.
 
 Steps:
-- Each step is one move a student would write as one line: a title (a few plain words naming the move, like "Factor the denominator"), the math for that line, and a one or two sentence explanation of why it's allowed or what rule it uses.
+- Each step is one move a student would write as one line: a title (a few plain words naming the move, like "Factor the denominator", no math), the math for that line, and an explanation of why it's allowed or what rule it uses in one short sentence (about 15 words at most). Let the math carry the step; don't repeat it in words.
 - Use the standard method a calculus course teaches for this kind of problem, not a shortcut the student wouldn't know. Show the algebra; don't skip from setup to answer.
 - Usually 3 to 10 steps. Don't pad.
 - Write to the student ("you") in a kind, plain voice.
 
-If mistakes from the student's work are listed: say in intro, in one or two sentences, where their work went off track and why. Follow the student's own approach up to that point when it was valid, and set off_track_step to the index (0-based) of the first step where the correct work differs from theirs. With no mistakes listed, off_track_step is null and intro gives the plan in one sentence.
+If mistakes from the student's work are listed: say in intro, in one short sentence, where their work went off track and why. Follow the student's own approach up to that point when it was valid, and set off_track_step to the index (0-based) of the first step where the correct work differs from theirs. With no mistakes listed, off_track_step is null and intro gives the plan in one short sentence.
 
 final_answer is the answer in LaTeX ("" if the problem has no single answer, like a proof or a sketch).
 
 cas_check lets a computer algebra system confirm the final answer. Describe what the problem computes, in SymPy syntax (x**2, sqrt(x), exp(x), log(x), pi, oo, DNE), and put the final answer in corrected_result; leave student_result "". Kinds: "equivalent" or "evaluate" (expression should equal the answer), "derivative" (of expression in variable), "antiderivative" (of expression), "definite_integral" (expression from lower to upper), "limit" (expression as variable → point, direction +, - or both), "ode_solution" (the equation moved to one side = 0 with y, yp, ypp; conditions like "y(0) = 1, yp(0) = 2" or ""; the explicit solution with C, C1, C2 as constants), or "none" when it can't be checked that way. A wrong cas_check is worse than "none". Leave unused fields "".
 
-Math fields (math, final_answer) are plain LaTeX without $ delimiters. Every other text field is shown as plain text on a phone: never use LaTeX commands there. Write math in prose the way you'd type it, e.g. x^2, √4 = 2, lim x→0 sin(x)/x.`;
+Math notation: math and final_answer are plain LaTeX without $ delimiters. In intro and explanation, write every piece of math as inline LaTeX between single dollar signs, e.g. "The integral of $-\\frac{1}{x}$ is $-\\ln x$, so $\\mu = \\frac{1}{x}$." Never write math as typed text there (no x^2, e^(-ln x) or 1/x outside dollar signs), and never use LaTeX commands outside dollar signs.`;
 
 export function tutorPrompt(context: TutorContext, unit?: string): string {
   const lines = [`Work out problem ${context.label} on this page.`];
@@ -102,6 +102,7 @@ export async function solveProblem(
       }
       return {
         label: context.label,
+        statement_svg: context.statement.trim() ? renderMathSvg(context.statement) : null,
         solvable: out.solvable,
         intro: out.intro.trim(),
         off_track_step: offTrack,
@@ -114,6 +115,7 @@ export async function solveProblem(
         final_answer: out.final_answer,
         final_answer_svg: out.final_answer.trim() ? renderMathSvg(out.final_answer) : null,
         verification,
+        inline_math: collectInlineMath([out.intro, ...steps.flatMap((step) => [step.title, step.explanation])]),
         meta: {
           model: response.model,
           latency_ms: Date.now() - started,

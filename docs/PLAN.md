@@ -196,6 +196,19 @@ must not drop):
 - Trim output: shorter explanations and notation notes where it doesn't hurt.
 - Run the `claude-api` skill's `cost-optimize` workflow for a ranked list.
 
+### Math in sentences (2026-10-06, after user testing)
+
+- Feedback: explanations and tutor steps wrote math as typed text
+  ("(4·f)^(1/2)", "e^(-ln x)"), which was hard to read, and were too wordy.
+- Now the model writes math inside sentences as `$...$` LaTeX; the server
+  renders each piece to an inline SVG (`collectInlineMath`, `inline_math` on
+  issues, results and tutor results) and the app's `RichText` lays words and
+  math out on a shared baseline. Explanations are capped at about two short
+  sentences, tutor step notes at one. The tutor's problem statement is
+  rendered too, and saved solutions have "Work it out again".
+- Eval after the change: 12/12 caught, 0 false flags, 2.4¢ per page (shorter
+  output). Results saved before the change still show the older text style.
+
 ### Phase 8 notes (2026-10-06)
 
 - **Endpoint:** `POST /v1/tutor` (multipart: the page photo, a `context` JSON

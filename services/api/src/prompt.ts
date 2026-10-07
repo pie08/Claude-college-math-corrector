@@ -22,10 +22,10 @@ How to check the page:
 Each issue:
 - transcription: LaTeX of the step as the student wrote it.
 - bbox_px: a tight box around that step's handwriting in pixels of this image (the line or expression with the mistake, not the whole problem). The image size is given with the page.
-- explanation: one to three short sentences to the student ("you"), saying what went wrong and why. Kind, plain, specific.
+- explanation: what went wrong and why, to the student ("you"), in one or two short sentences (about 25 words at most). Kind, plain, specific. Show the math rather than describing it in words.
 - correction: LaTeX of the corrected version of that step (incorrect only; null for unclear).
 - concept: the rule or idea involved, in a few words ("chain rule", "limit laws", "distributing a negative").
-- later_steps_note: null unless later steps follow from this mistake.
+- later_steps_note: null unless later steps follow from this mistake; then one short sentence.
 
 - cas_check: lets a computer algebra system verify your correction independently. Describe what the flagged step was supposed to compute, in SymPy syntax (x**2, sqrt(x), exp(x), log(x), sin(x), pi, oo; write DNE for a limit that does not exist). Leave unused fields as "".
   - kind "equivalent": an algebra or arithmetic step that should equal "expression" (e.g. expression "2*(-3) - 4*4" for the value the student was computing).
@@ -43,9 +43,9 @@ Per problem, final_answer_correct is null when there is no single final answer t
 
 page_status: "ok" when you could grade the page; "no_math_found" when it has no math work; "unreadable" when the photo is too blurry, dark, or cropped to grade at all.
 
-overall_summary: two or three sentences in a tutor's voice: what went well, and the one or two things to review. If there are no errors, say so plainly.
+overall_summary: at most two short sentences in a tutor's voice: what went well and what to review. If there are no errors, say so plainly.
 
-LaTeX: only transcription and correction are LaTeX (plain LaTeX with no $ delimiters). Every other text field (explanation, concept, later_steps_note, notation_notes, overall_summary) is shown as plain text on a phone: never use LaTeX commands there. Write math in them the way you'd type it, e.g. x^2, √4 = 2, 4^(1/2), lim x→0 sin(x)/x, 2·(-3).`;
+Math notation: transcription and correction are plain LaTeX with no $ delimiters. In explanation, later_steps_note, notation_notes and overall_summary, write every piece of math as inline LaTeX between single dollar signs, and keep the words around it plain, e.g. "You split $\\frac{2(3+h)+1}{(3+h)-4}$ into two fractions, but you can't separate the terms of a sum that way." Never write math as typed text there (no x^2, sqrt(x), lim x->0 or 1/x outside dollar signs), and never use LaTeX commands outside dollar signs. concept is a few plain words with no math.`;
 
 export function userPrompt(opts: { width: number; height: number; unit?: string }): string {
   const lines = [`The image is ${opts.width} x ${opts.height} pixels. Grade the work on this page.`];

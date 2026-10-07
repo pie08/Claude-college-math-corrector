@@ -7,7 +7,7 @@ import { tightenBoxes } from './boxes';
 import type { Checker } from './cas';
 import type { Effort, GraderConfig } from './config';
 import type { PreparedImage } from './image';
-import { renderMathSvg } from './math';
+import { collectInlineMath, renderMathSvg } from './math';
 import { ModelGradeSchema, type ModelGrade } from './modelOutput';
 import { estimateCost, totalInputTokens } from './pricing';
 import { SYSTEM_PROMPT, userPrompt } from './prompt';
@@ -129,6 +129,7 @@ export async function gradePage(
           page_status: parsed.data.page_status,
           problems,
           overall_summary: parsed.data.overall_summary.trim(),
+          inline_math: collectInlineMath([parsed.data.overall_summary, ...problems.flatMap((p) => p.notation_notes)]),
           meta: {
             model: servedBy,
             effort: deps.config.effort,
@@ -180,7 +181,7 @@ async function verifyCorrections(problems: Problem[], grade: ModelGrade, checker
   );
 }
 
-/** Renders each issue's LaTeX to SVG so the phone can show real math notation. */
+/** Renders each issue's LaTeX (and `$...$` math in its sentences) to SVG so the phone can show real math notation. */
 function withMathSvgs(problems: Problem[]): Problem[] {
   return problems.map((problem) => ({
     ...problem,
@@ -188,6 +189,7 @@ function withMathSvgs(problems: Problem[]): Problem[] {
       ...issue,
       transcription_svg: renderMathSvg(issue.transcription),
       correction_svg: issue.correction ? renderMathSvg(issue.correction) : null,
+      inline_math: collectInlineMath([issue.explanation, issue.later_steps_note]),
     })),
   }));
 }

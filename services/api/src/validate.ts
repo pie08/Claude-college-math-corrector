@@ -57,6 +57,7 @@ export function validateModelGrade(grade: ModelGrade, image: { width: number; he
           later_steps_note: issue.later_steps_note?.trim() || null,
           verification: 'not_checked' as const,
           bbox_source: 'model' as const,
+          inline_math: {},
         };
       }),
     };

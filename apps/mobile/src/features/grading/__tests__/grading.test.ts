@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { latexToText, proseText } from '../latexText';
+import { latexToText, proseText, richTokens } from '../latexText';
 import { buildMultipartBody } from '../multipart';
 import { createSseParser } from '../sse';
 
@@ -70,5 +70,31 @@ describe('latexToText', () => {
 
   it('keeps unknown commands readable instead of dropping them', () => {
     expect(latexToText('\\foo{x}')).toBe('foox');
+  });
+});
+
+describe('inline math in sentences', () => {
+  it('turns $...$ pieces into readable text', () => {
+    expect(proseText('You wrote $8(f(x)-g(x))$, not $\\frac{1}{2}$.')).toBe('You wrote 8(f(x)-g(x)), not 1/2.');
+    expect(proseText('Old style \\sqrt{4}=2 still works.')).toBe('Old style √4=2 still works.');
+  });
+
+  it('splits words and math, keeping punctuation attached', () => {
+    expect(richTokens('So $\\mu = x$, then  $y$.')).toEqual([
+      { kind: 'text', value: 'So', spaceAfter: true },
+      { kind: 'math', latex: '\\mu = x', spaceAfter: false },
+      { kind: 'text', value: ',', spaceAfter: true },
+      { kind: 'text', value: 'then', spaceAfter: true },
+      { kind: 'math', latex: 'y', spaceAfter: false },
+      { kind: 'text', value: '.', spaceAfter: false },
+    ]);
+  });
+
+  it('keeps a lone dollar sign as text', () => {
+    expect(richTokens('costs $5')).toEqual([
+      { kind: 'text', value: 'costs', spaceAfter: true },
+      { kind: 'text', value: '$', spaceAfter: false },
+      { kind: 'text', value: '5', spaceAfter: false },
+    ]);
   });
 });

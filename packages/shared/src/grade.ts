@@ -16,6 +16,14 @@ export const BBoxSchema = z.object({
 
 export const IssueStatusSchema = z.enum(['incorrect', 'unclear']);
 
+/**
+ * Math inside sentences: text fields mark it as `$...$` LaTeX, and this maps
+ * each piece's LaTeX to an SVG (sized for 16px text, `currentColor` fills)
+ * plus how far it reaches below the baseline, in pixels. Missing entries are
+ * shown as text. Results saved before this existed have none.
+ */
+export const InlineMathSchema = z.record(z.string(), z.object({ svg: z.string(), depth: z.number() })).default({});
+
 /** How the server checked a correction. `not_checked` until SymPy lands (Phase 5). */
 export const VerificationSchema = z.enum(['cas_verified', 'cas_disagrees', 'not_checkable', 'not_checked']);
 
@@ -43,6 +51,8 @@ export const IssueSchema = z.object({
   verification: VerificationSchema,
   /** Where the box came from: the model, or snapped to the handwriting ("ink"). */
   bbox_source: z.enum(['model', 'ink', 'ocr']),
+  /** Rendered `$...$` math from explanation and later_steps_note. */
+  inline_math: InlineMathSchema,
 });
 
 export const ProblemSchema = z.object({
@@ -80,6 +90,8 @@ export const GradeResultSchema = z.object({
   page_status: PageStatusSchema,
   problems: z.array(ProblemSchema),
   overall_summary: z.string(),
+  /** Rendered `$...$` math from overall_summary and notation_notes. */
+  inline_math: InlineMathSchema,
   meta: GradeMetaSchema,
 });
 
@@ -110,6 +122,7 @@ export const GradeEventSchema = z.discriminatedUnion('type', [
 ]);
 
 export type BBox = z.infer<typeof BBoxSchema>;
+export type InlineMath = z.infer<typeof InlineMathSchema>;
 export type Issue = z.infer<typeof IssueSchema>;
 export type Problem = z.infer<typeof ProblemSchema>;
 export type PageStatus = z.infer<typeof PageStatusSchema>;

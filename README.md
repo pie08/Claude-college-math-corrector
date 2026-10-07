@@ -14,17 +14,16 @@ of every phase.
 
 ![App diagram](app-diagram.png)
 
-**Status: Phase 2 of 6.** The app captures, crops and rotates pages (Phase 1).
-The grading server reads a page with Claude and returns the mistakes with
-boxes, explanations and fixes (Phase 2). The app isn't connected to the
-server yet (Phase 3).
+**Status: Phase 3 of 6.** Scan or pick a page, crop it, tap "Check my work",
+and the page comes back with red marks on mistakes; tap a mark for the
+explanation and fix. Results aren't saved yet (Phase 4).
 
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 1 | Scaffold, navigation, capture, crop/rotate | Done |
 | 2 | Backend proxy, Claude vision call, JSON schema validation | Done |
-| 3 | Red error overlay with tap-for-explanation | Next |
-| 4 | Corrections list with math rendering, local history | |
+| 3 | Red error overlay with tap-for-explanation | Done |
+| 4 | Corrections list with math rendering, local history | Next |
 | 5 | Unit selector, SymPy verification, OCR box snapping, error states | |
 | 6 | On-device testing, known limitations | |
 
@@ -181,6 +180,25 @@ otherwise it returns the result as JSON. The shapes are in
 `packages/shared/src/grade.ts`. Photos are processed in memory and never
 saved or logged by the server.
 
+## Running the whole thing on your phone
+
+1. Copy `apps/mobile/.env.example` to `apps/mobile/.env` and set
+   `EXPO_PUBLIC_API_SECRET` to the same value as `API_SHARED_SECRET` in the
+   root `.env`. (These values are bundled into the app, so never put the
+   Anthropic key here.)
+2. Start the grading server: `npm run api`
+3. With the phone on USB, forward both ports so the phone's `localhost`
+   reaches your computer (repeat after reconnecting the cable):
+   ```sh
+   adb reverse tcp:8081 tcp:8081   # Metro (the app's JavaScript)
+   adb reverse tcp:8787 tcp:8787   # grading server
+   ```
+4. Start Metro: `npm run mobile`, then open the app on the phone.
+
+If the app says "Can't reach the grading server", the server isn't running or
+the `adb reverse` for 8787 is missing. Using the app away from your computer
+needs the server deployed somewhere; that comes later.
+
 ## Checks
 
 From the repo root:
@@ -190,6 +208,22 @@ npm run typecheck   # tsc
 npm run lint        # ESLint (eslint-config-expo)
 npm test            # Jest (app) and Vitest (server) unit tests; no API calls
 ```
+
+## Phase 3 test checklist
+
+1. **Grade:** scan or pick a page → "Use this photo" → "Check my work". The
+   Checking screen ticks through the steps (with "n found" while writing) and
+   lands on Results in about 10–30 s.
+2. **Marks:** each mistake has a red box with an ✕ and a number; unreadable
+   steps get an amber dashed box with a ?. Pinch or double-tap to zoom, drag
+   to pan.
+3. **Explanation:** tap a mark (or a row in the list below). The sheet shows
+   what you wrote, what went wrong and the fix; Previous/Next step through all
+   marks.
+4. **Clean page:** grade a page with no mistakes. You get "No errors found".
+5. **Errors:** stop the server (or remove `adb reverse tcp:8787`) and grade.
+   You get "Can't reach the grading server" with Try again.
+6. **Cancel:** tap Cancel while checking. You go back to the review screen.
 
 ## Phase 1 test checklist
 

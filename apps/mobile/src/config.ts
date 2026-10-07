@@ -13,3 +13,12 @@ export const imageConfig = {
   /** JPEG quality (0–1) of crop-screen previews. */
   previewJpegQuality: 0.9,
 } as const;
+
+/**
+ * Grading server. Set in apps/mobile/.env (see .env.example); Expo inlines
+ * EXPO_PUBLIC_ variables when bundling.
+ */
+export const apiConfig = {
+  url: (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8787').replace(/\/+$/, ''),
+  secret: process.env.EXPO_PUBLIC_API_SECRET ?? '',
+} as const;

@@ -32,7 +32,7 @@ page_status: "ok" when you could grade the page; "no_math_found" when it has no 
 
 overall_summary: two or three sentences in a tutor's voice: what went well, and the one or two things to review. If there are no errors, say so plainly.
 
-LaTeX: plain LaTeX with no $ delimiters.`;
+LaTeX: only transcription and correction are LaTeX (plain LaTeX with no $ delimiters). Every other text field (explanation, concept, later_steps_note, notation_notes, overall_summary) is shown as plain text on a phone: never use LaTeX commands there. Write math in them the way you'd type it, e.g. x^2, √4 = 2, 4^(1/2), lim x→0 sin(x)/x, 2·(-3).`;
 
 export function userPrompt(opts: { width: number; height: number; unit?: string }): string {
   const lines = [`The image is ${opts.width} x ${opts.height} pixels. Grade the work on this page.`];

@@ -88,10 +88,24 @@ UI rules:
 | --- | --- | --- |
 | 1 | Scaffold, navigation, capture, crop/rotate | Done (awaiting Pixel 9 test) |
 | 2 | Backend + Claude call + schema validation, tested on sample images | Done |
-| 3 | Red overlay with tap-for-explanation; app wired to backend | Next |
-| 4 | Corrections list with math rendering; SQLite history | |
+| 3 | Red overlay with tap-for-explanation; app wired to backend | Done (tested on the Pixel 9a) |
+| 4 | Corrections list with math rendering; SQLite history | Next |
 | 5 | Unit selector, SymPy verification, OCR box snapping, error states | |
 | 6 | Device testing on the Pixel 9, known limitations | |
+
+### Phase 3 notes (2026-10-06)
+
+- No native rebuild needed: marks are plain views (not react-native-svg),
+  uploads use `expo/fetch` plus `expo-file-system`, both already in the build.
+- `expo/fetch` can't upload a React Native `FormData` file by URI ("Unsupported
+  FormDataPart implementation"), so the app reads the photo's bytes and builds
+  the multipart body itself (`features/grading/multipart.ts`).
+- The model sometimes put inline LaTeX in explanations. Fixed in the prompt
+  (prose fields are plain text; 0 of 42 fields leaked afterwards) and on the
+  phone (`proseText` cleans any that slip through).
+- Exam 1 eval after the prompt change: still 8/8 caught, 0 false flags.
+- Dev setup: the phone reaches the server through `adb reverse tcp:8787`. Using
+  the app away from the computer needs a deployed server (Phase 5/6).
 
 ### Phase 2 results (2026-10-06)
 

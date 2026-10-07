@@ -23,6 +23,15 @@ export default function RootLayout() {
             }}
           />
           <Stack.Screen name="scan/review" options={{ title: 'Ready to check' }} />
+          <Stack.Screen name="scan/grading" options={{ title: 'Checking', headerBackVisible: false, gestureEnabled: false }} />
+          <Stack.Screen
+            name="scan/results/[id]"
+            options={{
+              title: 'Results',
+              // Pinch and pan on the page would fight the swipe-back gesture.
+              gestureEnabled: false,
+            }}
+          />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>

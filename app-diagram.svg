@@ -36,7 +36,7 @@
 
   <!-- Header -->
   <text class="title" x="40" y="52">Calculus Tutor: how the app works</text>
-  <text class="subtitle" x="40" y="78">Updated at the end of Phase 2 (2026-10-06). Phases: 1 capture ✓ · 2 grading server ✓ · 3 overlay + wiring · 4 corrections + history · 5 unit, SymPy, OCR · 6 device testing</text>
+  <text class="subtitle" x="40" y="78">Updated at the end of Phase 3 (2026-10-06). Phases: 1 capture ✓ · 2 grading server ✓ · 3 overlay + wiring ✓ · 4 corrections + history · 5 unit, SymPy, OCR · 6 device testing</text>
 
   <!-- Legend -->
   <rect class="built" x="1085" y="30" width="22" height="16" rx="3"/><text class="d" x="1114" y="43">Built</text>
@@ -66,24 +66,24 @@
 
   <rect class="built" x="45" y="406" width="520" height="70" rx="10"/>
   <text class="h" x="62" y="432">4. Review screen</text>
-  <text class="d" x="62" y="452">Shows the final page; "Check my work" (disabled until Phase 3)</text>
+  <text class="d" x="62" y="452">Shows the final page → "Check my work"</text>
   <text class="f" x="62" y="469">src/app/scan/review.tsx</text>
 
-  <rect class="next" x="45" y="492" width="520" height="70" rx="10"/>
+  <rect class="built" x="45" y="492" width="520" height="70" rx="10"/>
   <text class="h" x="62" y="518">5. Send for grading + live progress</text>
-  <text class="d" x="62" y="538">Upload photo (+ current unit), show progress as events stream in</text>
-  <text class="tag" x="490" y="518" fill="#3651d4">PHASE 3</text>
+  <text class="d" x="62" y="538">Upload over expo/fetch; steps update as server events stream in</text>
+  <text class="f" x="62" y="555">src/app/scan/grading.tsx · features/grading/api.ts</text>
 
-  <rect class="next" x="45" y="578" width="520" height="70" rx="10"/>
-  <text class="h" x="62" y="604">6. Red marks on the page</text>
-  <text class="d" x="62" y="624">Red boxes (✗ icon) for errors, amber dashed (?) for unreadable;</text>
-  <text class="d" x="62" y="641">tap a mark → explanation + fix</text>
-  <text class="tag" x="490" y="604" fill="#3651d4">PHASE 3</text>
+  <rect class="built" x="45" y="578" width="520" height="70" rx="10"/>
+  <text class="h" x="62" y="604">6. Red marks on the page (zoomable)</text>
+  <text class="d" x="62" y="624">Red ✕ boxes = mistakes, amber dashed ? = unreadable; tap → fix sheet</text>
+  <text class="f" x="62" y="641">scan/results/[id].tsx · PageOverlay.tsx · IssueSheet.tsx</text>
 
-  <rect class="planned" x="45" y="664" width="520" height="70" rx="10"/>
+  <rect class="next" x="45" y="664" width="520" height="70" rx="10"/>
   <text class="h" x="62" y="690">7. Corrections list + history</text>
   <text class="d" x="62" y="710">Math rendered as SVG; scans and fixes saved on the phone (SQLite)</text>
-  <text class="tag" x="490" y="690" fill="#6b7280">PHASE 4</text>
+  <text class="d" x="62" y="726">(results are in memory only until then)</text>
+  <text class="tag" x="490" y="690" fill="#3651d4">PHASE 4</text>
 
   <rect class="planned" x="45" y="750" width="520" height="90" rx="10"/>
   <text class="h" x="62" y="776">8. Polish</text>
@@ -190,5 +190,5 @@
   <text class="d" x="910" y="980">• Exam 1 test: 8/8 errors caught, 0 false flags, ~12–16 s, ~3¢/page.</text>
   <text class="d" x="910" y="1002">• Plan, decisions and results: docs/PLAN.md</text>
   <text class="d" x="910" y="1024">• Setup and commands: README.md</text>
-  <text class="d" x="910" y="1046">• Android build needs JAVA_HOME + ANDROID_HOME (README → Android)</text>
+  <text class="d" x="910" y="1046">• Phone → server over USB: adb reverse tcp:8787 tcp:8787 (JDK 17 to build)</text>
 </svg>

@@ -27,6 +27,8 @@ phone: reopen it from History, and study all your mistakes in Corrections.
 | 4 | Corrections list with math rendering, local history | Done |
 | 5 | Unit selector, SymPy verification, OCR box snapping, error states, hosting | Next |
 | 6 | Differential equations support, on-device testing, known limitations | |
+| 7 | Usage tracker (pages and dollars) and cost reduction | |
+| 8 | Step-by-step tutor: work out a selected problem | |
 
 ## Repository layout
 

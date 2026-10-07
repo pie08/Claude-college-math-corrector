@@ -23,3 +23,6 @@ calculus work through a small grading server that calls Claude.
 - **User request:** once the app is almost complete (start of Phase 6), add
   differential equations support. Details in `docs/PLAN.md` → "To do near
   the end: differential equations".
+- **User requests, after Phase 6:** Phase 7 usage tracker + cost reduction,
+  Phase 8 step-by-step tutor that works out a selected problem. Details in
+  `docs/PLAN.md`.

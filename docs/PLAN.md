@@ -92,6 +92,8 @@ UI rules:
 | 4 | Corrections list with math rendering; SQLite history | Done |
 | 5 | Unit selector, SymPy verification, OCR box snapping, error states, hosting the server | Next |
 | 6 | **Differential equations support** (once the app is almost complete), then device testing on the Pixel 9 and known limitations | |
+| 7 | **Usage tracker + cost reduction** (requested 2026-10-06) | |
+| 8 | **Step-by-step tutor:** work out a problem you select (requested 2026-10-06) | |
 
 ### To do near the end: differential equations (requested 2026-10-06)
 
@@ -108,6 +110,47 @@ already reads DE work in general, but it needs dedicated support:
   satisfies the equation and initial conditions (builds on the Phase 5 checker).
 - A "Differential Equations" option in the unit selector.
 - DE test pages with an answer key (`answers-de.md`) and an eval run.
+
+### Phase 7: usage tracker and cost reduction (requested 2026-10-06)
+
+Usage tracker:
+- The server already computes each request's tokens and cost
+  (`meta.cost_usd`). Record every request (time, model, effort, tokens, cost,
+  latency, retries, success/error) in a small server-side log or SQLite table.
+  Never store images.
+- A `/v1/usage` endpoint and a Usage section in Settings: pages and dollars
+  today / this month / all time, average cost per page, most expensive pages.
+- A monthly budget in `.env` (e.g. `MONTHLY_BUDGET_USD`): warn in the app near
+  the limit and refuse new grades once it's hit. Keep the Anthropic Console
+  spend limit as the hard backstop.
+
+Cost reduction, measured with the eval before and after each change (accuracy
+must not drop):
+- Prompt caching for the fixed system prompt.
+- Image size: test a 1568 px vs 2048 px long edge (fewer image tokens) on the
+  exam set and Pixel photos.
+- Effort: keep `high` as default but try `medium` for simple, short pages if
+  the eval allows; re-check line accuracy, since lower effort boxed wrong lines
+  in Phase 2.
+- Don't regrade identical photos: hash the image and reuse the saved result.
+- Trim output: shorter explanations and notation notes where it doesn't hurt.
+- Run the `claude-api` skill's `cost-optimize` workflow for a ranked list.
+
+### Phase 8: step-by-step tutor (requested 2026-10-06)
+
+A "Show me how" button that works out a problem the student selects, like a
+tutor at the board:
+- Select a problem: tap its label on the results page, pick it from a list, or
+  photograph/type a single equation.
+- A new endpoint (e.g. `POST /v1/solve`) asks Claude for a full worked
+  solution as structured steps: each step's math (LaTeX → SVG), a one-line
+  "why", and the rule used, plus the final answer.
+- App: steps revealed one at a time ("Next step") so the student can try each
+  step first, with a "show all" option.
+- Where the student already made a mistake, start from the problem and point
+  out where their work went off track.
+- Verify the final answer with SymPy where possible (Phase 5 checker), and
+  count tutor requests in the usage tracker (Phase 7).
 
 ### Phase 4 notes (2026-10-06)
 

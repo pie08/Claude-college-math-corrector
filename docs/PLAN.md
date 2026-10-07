@@ -86,16 +86,38 @@ UI rules:
 
 | Phase | Scope | Status |
 | --- | --- | --- |
-| 1 | Scaffold, navigation, capture, crop/rotate | Done (awaiting Pixel 9 test) |
+| 1 | Scaffold, navigation, capture, crop/rotate | Done |
 | 2 | Backend + Claude call + schema validation, tested on sample images | Done |
 | 3 | Red overlay with tap-for-explanation; app wired to backend | Done (tested on the Pixel 9a) |
 | 4 | Corrections list with math rendering; SQLite history | Done |
 | 5 | Unit selector, SymPy verification, box snapping (ink-based), error states, hosting the server | Done (hosting: Dockerfile ready, provider not chosen yet) |
-| 6 | **Differential equations support** (once the app is almost complete), then device testing on the Pixel 9 and known limitations | |
+| 6 | **Differential equations support** (once the app is almost complete), then device testing on the Pixel 9 and known limitations | Done |
 | 7 | **Usage tracker + cost reduction** (requested 2026-10-06) | |
 | 8 | **Step-by-step tutor:** work out a problem you select (requested 2026-10-06) | |
 
-### To do near the end: differential equations (requested 2026-10-06)
+### Phase 6 notes (2026-10-06)
+
+- **Prompt:** a rule listing real DE mistakes (constant added after
+  exponentiating, lost constant, wrong integrating factor, characteristic-root
+  errors, a particular guess that duplicates a homogeneous solution, initial
+  conditions applied too early), and that equivalent forms or implicit
+  solutions are fine. Slope/direction fields are treated like graphs.
+- **Checker:** new `cas_check` kind `ode_solution`. The equation is written
+  `= 0` with `y`, `yp`, `ypp`; the worker plugs each explicit solution into it,
+  checks the initial conditions (`conditions`, e.g. "y(0) = 1, yp(0) = 2"),
+  and for a general solution requires one arbitrary constant per order, so a
+  lost `+ C` counts as wrong even though e^x does solve y' = y. Implicit
+  solutions are "none".
+- **Test pages:** no photographed DE work yet, so
+  `services/api/scripts/make-de-pages.ts` draws two worksheets in a
+  handwriting font with four known mistakes and writes `answers-de.md`.
+  Real pages should replace them.
+- **Eval:** DE set 4/4 caught, 0 false flags, 4/4 fixes SymPy-verified, boxes
+  4/4 snapped, ~17 s and 3.5¢ per page. Exam 1 re-run after the prompt change:
+  8/8 caught, 0 false flags, p50 12.6 s.
+- The "Differential equations" unit was already in the Settings picker.
+
+### Original DE plan (requested 2026-10-06)
 
 Add once the core app is almost complete (start of Phase 6). The grader
 already reads DE work in general, but it needs dedicated support:

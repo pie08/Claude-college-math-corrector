@@ -36,7 +36,7 @@
 
   <!-- Header -->
   <text class="title" x="40" y="52">Calculus Tutor: how the app works</text>
-  <text class="subtitle" x="40" y="78">Updated after Phase 5 (2026-10-06). Phases: 1 capture ✓ · 2 server ✓ · 3 overlay ✓ · 4 history ✓ · 5 unit, SymPy, boxes ✓ · 6 diff. equations + testing (next) · 7 usage + cost · 8 step-by-step tutor</text>
+  <text class="subtitle" x="40" y="78">Updated after Phase 6 (2026-10-06). Phases: 1 capture ✓ · 2 server ✓ · 3 overlay ✓ · 4 history ✓ · 5 unit, SymPy, boxes ✓ · 6 diff. equations ✓ · 8 step-by-step tutor (next) · 7 usage + cost</text>
 
   <!-- Legend -->
   <rect class="built" x="1085" y="30" width="22" height="16" rx="3"/><text class="d" x="1114" y="43">Built</text>
@@ -136,7 +136,7 @@
 
   <rect class="built" x="655" y="680" width="520" height="70" rx="10"/>
   <text class="h" x="672" y="706">G. Verify &amp; refine</text>
-  <text class="d" x="672" y="726">SymPy double-checks each fix (Python worker) · boxes snapped to the ink</text>
+  <text class="d" x="672" y="726">SymPy double-checks each fix, incl. DE solutions plugged back in · boxes snapped</text>
   <text class="f" x="672" y="743">src/cas.ts → services/cas/cas_worker.py · src/boxes.ts</text>
 
   <path class="flow" d="M915,218 V232"/>
@@ -192,7 +192,7 @@
   <text class="col" x="910" y="910">Key facts</text>
   <text class="d" x="910" y="936">• Photos live on the phone. The server never saves or logs them.</text>
   <text class="d" x="910" y="958">• Secrets in .env at the repo root (gitignored): API key, app secret.</text>
-  <text class="d" x="910" y="980">• Exam 1 test: 8/8 caught, 0 false flags, 6/8 fixes SymPy-verified, ~15 s, ~3.4¢/page.</text>
+  <text class="d" x="910" y="980">• Tests: Exam 1 8/8 caught, DE sheets 4/4, 0 false flags; ~13–17 s, ~3.5¢/page.</text>
   <text class="d" x="910" y="1002">• Plan, decisions and results: docs/PLAN.md</text>
   <text class="d" x="910" y="1024">• Setup and commands: README.md</text>
   <text class="d" x="910" y="1046">• Phone → server over USB: adb reverse tcp:8787 tcp:8787 (JDK 17 to build)</text>

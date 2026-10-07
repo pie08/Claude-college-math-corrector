@@ -40,6 +40,7 @@ export function sampleGrade(overrides: Partial<ModelGrade> = {}): ModelGrade {
               direction: 'both',
               lower: '',
               upper: '',
+              conditions: '',
               student_result: '-56',
               corrected_result: '-22',
             },

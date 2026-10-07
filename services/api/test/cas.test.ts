@@ -11,6 +11,7 @@ const claim = (over: Partial<CasCheck>): CasCheck => ({
   direction: 'both',
   lower: '',
   upper: '',
+  conditions: '',
   student_result: '1/32',
   corrected_result: '1/36',
   ...over,
@@ -26,6 +27,14 @@ describe('CasWorker (real SymPy)', () => {
     if (ok.detail === 'Python checker unavailable') return; // no Python on this machine
     expect(ok.verdict).toBe('verified');
     expect((await worker.check(claim({ corrected_result: '1/32' }))).verdict).toBe('disagrees');
+  });
+
+  it('checks a differential equation solution', async () => {
+    const result = await worker.check(
+      claim({ kind: 'ode_solution', expression: 'yp - x*y', student_result: 'exp(x**2/2) + C', corrected_result: 'C*exp(x**2/2)' }),
+    );
+    if (result.detail === 'Python checker unavailable') return;
+    expect(result.verdict).toBe('verified');
   });
 
   it('answers not_checkable for kind none without calling Python', async () => {

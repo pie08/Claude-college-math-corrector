@@ -14,12 +14,13 @@ of every phase.
 
 ![App diagram](app-diagram.png)
 
-**Status: Phase 5 of 8.** Scan or pick a page, crop it, tap "Check my work",
+**Status: Phase 6 of 8.** Scan or pick a page, crop it, tap "Check my work",
 and the page comes back with red marks on mistakes; tap a mark for the
 explanation and fix in real math notation. Fixes are double-checked by a math
 engine (SymPy), and boxes are snapped to your handwriting. Every graded page is
 saved on the phone: reopen it from History, and study all your mistakes in
-Corrections. Pick your current unit in Settings.
+Corrections. Pick your current unit in Settings. Differential equations are
+checked too, including plugging solutions back into the equation.
 
 | Phase | Scope | Status |
 | --- | --- | --- |
@@ -28,7 +29,7 @@ Corrections. Pick your current unit in Settings.
 | 3 | Red error overlay with tap-for-explanation | Done |
 | 4 | Corrections list with math rendering, local history | Done |
 | 5 | Unit selector, SymPy verification, box snapping, error states, hosting | Done |
-| 6 | Differential equations support, on-device testing, known limitations | |
+| 6 | Differential equations support, on-device testing, known limitations | Done |
 | 7 | Usage tracker (pages and dollars) and cost reduction | |
 | 8 | Step-by-step tutor: work out a selected problem | |
 
@@ -53,6 +54,7 @@ services/api/               Grading server (Node/TypeScript, Hono, Anthropic SDK
   src/boxes.ts              Snaps the model's boxes to the ink on the page
   scripts/grade.ts          Command-line grader that saves annotated copies
   scripts/eval.ts           Scores the grader against answer keys
+  scripts/make-de-pages.ts  Draws stand-in differential-equation test pages
   test/fixtures/pages/      Test pages and answer keys (local only, gitignored)
 services/cas/               Python SymPy checker (cas_worker.py) and its tests
 Dockerfile                  Container image for hosting the server
@@ -183,7 +185,7 @@ Without it the server still grades; fixes just aren't double-checked
 ```sh
 npm run api                                   # dev server on http://localhost:8787
 npm run grade -- path/to/photo.jpg            # grade photos (or a folder) from the command line
-npm run eval -- --set exam1 --efforts high    # score against answers-exam1.md
+npm run eval -- --set exam1 --efforts high    # score against answers-exam1.md (also: --set de)
 ```
 
 `grade` and `eval` save each result's JSON and an annotated copy of the page
@@ -251,6 +253,20 @@ npm run typecheck   # tsc
 npm run lint        # ESLint (eslint-config-expo)
 npm test            # Jest (app) and Vitest (server) unit tests; no API calls
 ```
+
+## Phase 6 test checklist
+
+1. **DE page:** write out (or photograph) a separable or linear DE with a
+   mistake, e.g. `y = e^(x²/2) + C` for dy/dx = xy. It gets a red mark, and the
+   fix has "Checked by the math engine".
+2. **Correct DE work:** a correct general solution, written in your own form
+   (another constant name, C·e^x vs. Ae^x), gets no mark.
+3. **Lost + C:** drop the constant on a DE with an initial condition. The mark
+   lands on the line where the constant went missing.
+4. **Second order:** a characteristic-equation mistake (wrong roots) is marked
+   on the line with the wrong roots, not on every later line.
+5. **Unit:** set the unit to "Differential equations" and grade; explanations
+   still point out algebra slips as algebra.
 
 ## Phase 5 test checklist
 
@@ -321,8 +337,17 @@ npm test            # Jest (app) and Vitest (server) unit tests; no API calls
   checker added a few seconds), up to ~35 s for a dense photo. Over the 15 s
   target on busy pages; the app shows live progress. Phase 7 looks at cutting
   time and cost.
-- **Math engine coverage:** graph reasoning, missing steps and word answers
-  can't be checked by SymPy; those fixes show no badge.
+- **Math engine coverage:** graph reasoning, missing steps, word answers and
+  implicit DE solutions (like y² = x² + C) can't be checked by SymPy; those
+  fixes show no badge.
+- **DE testing so far is on generated worksheets** (a handwriting font, not
+  real photos). Real DE homework may read less reliably; add pages with an
+  answer key (`answers-de.md` format) to measure it.
+- **Slope fields and direction fields** are left alone unless an error is
+  certain, like other hand-drawn graphs.
+- **One page at a time:** a problem continued on the next page is graded
+  without the earlier half.
+- **iOS** hasn't been built or tested; everything was tested on a Pixel 9a.
 - **Already-graded pages:** a teacher's red-pen marks can sway the grader (it
   once read a red corrected answer as the student's). Real use is checking work
   before it's graded, so this rarely matters.

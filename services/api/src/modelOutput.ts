@@ -14,7 +14,7 @@ import { z } from 'zod';
  * server can verify the correction independently. Unused fields are "".
  */
 export const CasCheckSchema = z.strictObject({
-  kind: z.enum(['equivalent', 'derivative', 'antiderivative', 'definite_integral', 'limit', 'evaluate', 'none']),
+  kind: z.enum(['equivalent', 'derivative', 'antiderivative', 'definite_integral', 'limit', 'evaluate', 'ode_solution', 'none']),
   variable: z.string(),
   expression: z.string(),
   point: z.string(),
@@ -22,6 +22,8 @@ export const CasCheckSchema = z.strictObject({
   direction: z.string(),
   lower: z.string(),
   upper: z.string(),
+  /** Initial conditions for ode_solution, e.g. "y(0) = 1, yp(0) = 2"; "" otherwise. */
+  conditions: z.string(),
   student_result: z.string(),
   corrected_result: z.string(),
 });

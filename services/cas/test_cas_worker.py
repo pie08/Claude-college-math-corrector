@@ -55,6 +55,53 @@ class CheckTests(unittest.TestCase):
         self.assertEqual(check(req(kind="none", expression="", corrected_result=""))[0], "not_checkable")
 
 
+class OdeTests(unittest.TestCase):
+    def ode(self, **kw):
+        return check(req(kind="ode_solution", conditions="", **kw))
+
+    def test_separable_wrong_constant(self):
+        # dy/dx = x*y: e^(x^2/2) + C is not a solution; C*e^(x^2/2) is.
+        verdict, _ = self.ode(expression="yp - x*y", student_result="exp(x**2/2) + C",
+                              corrected_result="C*exp(x**2/2)")
+        self.assertEqual(verdict, "verified")
+
+    def test_lost_constant_is_caught(self):
+        # y' = y: e^x solves it but is not the general solution.
+        verdict, _ = self.ode(expression="yp - y", student_result="exp(x)", corrected_result="C*exp(x)")
+        self.assertEqual(verdict, "verified")
+
+    def test_correct_general_solution_not_flagged(self):
+        verdict, detail = self.ode(expression="yp + 2*y - 4", student_result="2 + C*exp(-2*x)",
+                                   corrected_result="2 + C*exp(-2*x)")
+        self.assertEqual((verdict, detail), ("disagrees", "student result looks correct"))
+
+    def test_second_order(self):
+        # y'' - 5y' + 6y = 0: roots 2 and 3, not -2 and -3.
+        verdict, _ = self.ode(expression="ypp - 5*yp + 6*y", student_result="C1*exp(-2*x) + C2*exp(-3*x)",
+                              corrected_result="C1*exp(2*x) + C2*exp(3*x)")
+        self.assertEqual(verdict, "verified")
+
+    def test_initial_value_problem(self):
+        verdict, _ = check(req(kind="ode_solution", expression="yp - y", conditions="y(0) = 5",
+                               student_result="exp(x)", corrected_result="5*exp(x)"))
+        self.assertEqual(verdict, "verified")
+
+    def test_wrong_correction_is_flagged(self):
+        verdict, detail = self.ode(expression="ypp + 4*y", student_result="C1*exp(2*x)",
+                                   corrected_result="C1*cos(4*x) + C2*sin(4*x)")
+        self.assertEqual((verdict, detail), ("disagrees", "correction does not solve the equation"))
+
+    def test_second_order_ivp(self):
+        # y'' - y = x, y(0) = 1, y'(0) = 0 gives y = e^x - x.
+        verdict, _ = check(req(kind="ode_solution", expression="ypp - y - x", conditions="y(0) = 1, yp(0) = 0",
+                               student_result="exp(x)/2 + exp(-x)/2 - x", corrected_result="exp(x) - x"))
+        self.assertEqual(verdict, "verified")
+
+    def test_bad_condition_rejected(self):
+        with self.assertRaises(Unsupported):
+            check(req(kind="ode_solution", expression="yp - y", conditions="y(0) == import os",
+                      student_result="", corrected_result="exp(x)"))
+
 class SafetyTests(unittest.TestCase):
     def test_rejects_code(self):
         for bad in ["__import__('os')", "x.__class__", "exec(1)", "open(1)", "[1]", "a=1", "lambda: 1", "x; y"]:

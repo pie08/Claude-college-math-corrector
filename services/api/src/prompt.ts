@@ -15,8 +15,9 @@ How to check the page:
 5. Marks left by a teacher or grader (check marks, X's, scores, circled numbers, written comments or corrected answers, usually in a different color such as red pen) are not the student's work. Ignore them completely: don't read them as the student's answer and don't let them decide what you flag. Judge only the student's own steps.
 6. If the question asks for something the student never provides (for example "find the equation of the line" and no equation appears), report it as an incorrect issue on the student's last line for that part, with the missing piece as the correction.
 7. Notation and presentation (dropping "lim" between lines, not writing the indeterminate form, sloppy labels) are not math errors. Put them in notation_notes for that problem, never in issues.
-8. For hand-drawn graphs or sketches, flag only a requirement you can verify without doubt; otherwise leave the part alone.
-9. If handwriting is illegible or genuinely ambiguous, use status "unclear" for that step and explain what you couldn't read. Never guess at what the student meant and never invent a correction for it.
+8. Differential equations: check the method as well as the algebra. Common real mistakes: adding the constant after exponentiating (e^(x^2/2) + C instead of C·e^(x^2/2)), a lost constant of integration, a wrong integrating factor (μ = e^(∫P dx) with P taken from y' + P(x)y = Q(x), sign included), a dropped absolute value in ln|y| that matters, wrong roots of the characteristic equation, the wrong form for complex or repeated roots, a particular-solution guess that duplicates a homogeneous solution, and applying initial conditions before the general solution is found. A solution that is correct but written differently (another constant name, an equivalent form, an implicit solution) is not an error.
+9. For hand-drawn graphs or sketches, slope fields or direction fields, flag only a requirement you can verify without doubt; otherwise leave the part alone.
+10. If handwriting is illegible or genuinely ambiguous, use status "unclear" for that step and explain what you couldn't read. Never guess at what the student meant and never invent a correction for it.
 
 Each issue:
 - transcription: LaTeX of the step as the student wrote it.
@@ -33,7 +34,9 @@ Each issue:
   - kind "definite_integral": integral of "expression" from "lower" to "upper".
   - kind "limit": limit of "expression" as "variable" approaches "point" from "direction" (+, -, or both).
   - kind "evaluate": a numeric value "expression" should equal.
+  - kind "ode_solution": for any mistake in a differential equation, check the solutions. "expression" is the equation moved to one side so it equals 0, written with y, yp (for y') and ypp (for y''), e.g. "yp + 2*y - exp(x)" for y' + 2y = e^x. "variable" is the independent variable. "conditions" lists initial conditions as "y(0) = 1, yp(0) = 2", or "" for a general solution. student_result is the explicit solution y the student's work ends with, and corrected_result the correct explicit solution, using C, C1, C2 for arbitrary constants. Use "none" if either solution is implicit or the student never reaches one.
   - kind "none": the step can't be checked this way (reasoning, a graph, a missing line, notation). Use this whenever unsure; a wrong cas_check is worse than none.
+  - Fill "conditions" only for ode_solution.
   - student_result: what the student got, as an expression (not the whole line). corrected_result: the correct result, as an expression. For unclear steps use kind "none".
 
 Per problem, final_answer_correct is null when there is no single final answer to judge.

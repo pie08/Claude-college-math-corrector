@@ -7,7 +7,12 @@ worker computes the true result independently and reports whether the
 correction matches it and whether the student's result really was wrong.
 
 Request:  {"id", "kind", "variable", "expression", "point", "direction",
-           "lower", "upper", "student_result", "corrected_result"}
+           "lower", "upper", "conditions", "student_result", "corrected_result"}
+
+Differential equations (kind "ode_solution"): "expression" is the equation
+moved to one side (= 0), written with y, yp (y') and ypp (y''); the results
+are explicit solutions y(x), with C, C1, C2 as arbitrary constants;
+"conditions" lists initial conditions like "y(0) = 1, yp(0) = 2".
 Response: {"id", "verdict": "verified" | "disagrees" | "not_checkable", "detail"}
 
 Expressions come from a language model, and SymPy's parser evaluates Python,
@@ -36,7 +41,8 @@ FUNCTIONS = {
     "exp": sp.exp, "log": sp.log, "ln": sp.log, "sqrt": sp.sqrt, "Abs": sp.Abs, "abs": sp.Abs,
 }
 CONSTANTS = {"pi": sp.pi, "e": sp.E, "E": sp.E, "oo": sp.oo, "inf": sp.oo, "infinity": sp.oo}
-SYMBOL_NAMES = set("abcdhkmnpqrstuvwxyzABCDF") | {"theta", "alpha", "beta", "lam"}
+SYMBOL_NAMES = set("abcdhkmnpqrstuvwxyzABCDFK") | {"theta", "alpha", "beta", "lam", "C1", "C2", "yp", "ypp"}
+ARBITRARY_CONSTANTS = {"C", "C1", "C2", "K", "A", "B"}
 
 # Digits, letters, operators, parentheses, commas, spaces and decimal points.
 ALLOWED_CHARS = re.compile(r"^[0-9A-Za-z_+\-*/^()., ]*$")
@@ -105,8 +111,75 @@ def limit_value(expr, var, point, direction):
     return left if same(left, right, {var}) else DNE
 
 
+CONDITION = re.compile(r"^\s*(y|yp)\s*\(([^()=]+)\)\s*=\s*([^=]+?)\s*$")
+
+
+def parse_conditions(text, name):
+    """'y(0) = 1, yp(0) = 2' -> [(0, 0, 1), (1, 0, 2)] as (derivative order, x0, value)."""
+    result = []
+    for part in (text or "").split(","):
+        if not part.strip():
+            continue
+        match = CONDITION.match(part)
+        if not match:
+            raise Unsupported("bad condition")
+        order = 0 if match.group(1) == "y" else 1
+        result.append((order, parse(match.group(2), name), parse(match.group(3), name)))
+    return result
+
+
+def solves_ode(candidate, ode, var, conditions):
+    """True if y = candidate satisfies ode = 0 (identically) and every condition."""
+    y, yp, ypp = (sp.Symbol(n, real=True) for n in ("y", "yp", "ypp"))
+    first = sp.diff(candidate, var)
+    residual = ode.subs({ypp: sp.diff(first, var), yp: first, y: candidate})
+    if not same(residual, sp.Integer(0), set()):
+        return False
+    for order, x0, value in conditions:
+        at = (candidate if order == 0 else first).subs(var, x0)
+        if not same(at, value, set()):
+            return False
+    return True
+
+
+def arbitrary_constants(expr):
+    return {s for s in expr.free_symbols if s.name in ARBITRARY_CONSTANTS}
+
+
+def check_ode(req, name, var):
+    ode = parse(req.get("expression"), name)
+    if ode is DNE:
+        return "not_checkable", "expression is DNE"
+    conditions = parse_conditions(req.get("conditions"), name)
+    names = {s.name for s in ode.free_symbols}
+    order = 2 if "ypp" in names else 1
+    # A general solution needs one constant per order; an IVP answer needs none.
+    needed = 0 if len(conditions) >= order else order
+
+    def ok(candidate):
+        if candidate is DNE or len(arbitrary_constants(candidate)) < needed:
+            return False
+        return solves_ode(candidate, ode, var, conditions)
+
+    corrected = parse(req.get("corrected_result"), name)
+    if not ok(corrected):
+        return "disagrees", "correction does not solve the equation"
+    try:
+        student = parse(req.get("student_result"), name)
+    except Unsupported:
+        student = None
+    if student is not None and ok(student):
+        return "disagrees", "student result looks correct"
+    return "verified", "correction solves the equation" + ("" if student is not None else "; student result not parsed")
+
+
 def check(req):
     kind = req.get("kind")
+    if kind == "ode_solution":
+        name = (req.get("variable") or "x").strip() or "x"
+        if not re.fullmatch(r"[A-Za-z]", name) or name == "y":
+            return "not_checkable", "bad variable"
+        return check_ode(req, name, sp.Symbol(name, real=True))
     if kind not in ("equivalent", "derivative", "antiderivative", "definite_integral", "limit", "evaluate"):
         return "not_checkable", "no checkable claim"
     name = (req.get("variable") or "x").strip() or "x"

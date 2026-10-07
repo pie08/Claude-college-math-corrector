@@ -221,11 +221,18 @@ the `adb reverse` for 8787 is missing.
 The app talks to whatever `EXPO_PUBLIC_API_URL` says, so the server has to be
 reachable from the phone. Two ways:
 
-- **Keep it on your PC** (free, PC must be on): install
-  [Tailscale](https://tailscale.com) on the PC and phone, run `npm run api`,
-  and set `EXPO_PUBLIC_API_URL=http://<pc-name>:8787`. Or expose it with a
-  Cloudflare tunnel (`cloudflared tunnel --url http://localhost:8787`) and use
-  the https URL it prints.
+- **Keep it on your PC over Tailscale** (what this project uses now; free,
+  PC must be on): install [Tailscale](https://tailscale.com) on the PC and
+  phone with the same account, then on the PC run once
+  `tailscale serve --bg 8787` (it asks you to enable HTTPS for the tailnet the
+  first time). That gives `https://<pc-name>.<tailnet>.ts.net`, reachable only
+  from your own devices. Put it in `apps/mobile/.env` as
+  `EXPO_PUBLIC_API_URL` and restart Metro with `--clear`. The serve setting
+  survives reboots; just keep `npm run api` running. Use https: Android
+  blocks plain http in standalone builds.
+- **Raspberry Pi** (planned, dorm): same Tailscale setup on the Pi (64-bit
+  Pi OS, Pi 4/5), run the Dockerfile or `npm run api` there, and change the
+  URL to the Pi's ts.net name.
 - **Host it** (always on, a few dollars a month): build the root `Dockerfile`
   on Fly.io, Render or Google Cloud Run. Set `ANTHROPIC_API_KEY` and
   `API_SHARED_SECRET` as the host's secrets (never in the image), then point

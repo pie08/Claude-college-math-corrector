@@ -181,6 +181,11 @@ tutor at the board:
   any container host (Fly.io, Render, Cloud Run). Alternative with no cloud
   account: keep the server on the PC and reach it through Tailscale or a
   Cloudflare tunnel. Not tested locally (no Docker on this PC).
+- **Chosen for now: Tailscale** (2026-10-06). `tailscale serve --bg 8787`
+  publishes the PC's server as `https://ty-laptop.<tailnet>.ts.net` to the
+  user's own devices only; the app's `EXPO_PUBLIC_API_URL` points there.
+  **Later: a Raspberry Pi in the dorm** hosts the server the same way (user's
+  plan); only the URL changes.
 
 ### Phase 4 notes (2026-10-06)
 

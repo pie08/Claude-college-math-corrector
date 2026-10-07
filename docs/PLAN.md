@@ -26,7 +26,7 @@ problems graded in about 15 seconds.
 | Backend | Node/TypeScript (Hono) + Python SymPy in one container. Runs on the dev computer first; deploy (Fly.io / Render / Cloud Run) only when the phone needs it away from home. |
 | Abuse/cost control | Personal use: one shared secret between app and server, a server-side daily request cap, and a monthly spend limit in the Anthropic Console. No App Attest / Play Integrity, no accounts. |
 | Priority | Accuracy over speed. Aim for 15 s and show live progress. Favor fewer, surer flags over catching every error. |
-| Test pages | Real photos from the Pixel 9 in `services/api/test/fixtures/pages/`, with an answer key (see `answers.md` there). Synthetic pages only as a fallback. |
+| Test pages | Local only (gitignored): `services/api/test/fixtures/pages/`. First set: graded Exam 1 (7 work pages rendered from the scanned PDF, instructor stamps painted out) with `answers-exam1.md` built from the correction sheet. Real Pixel 9 photos come next. Format: `answers.md`. |
 
 ## Architecture
 
@@ -86,12 +86,177 @@ UI rules:
 
 | Phase | Scope | Status |
 | --- | --- | --- |
-| 1 | Scaffold, navigation, capture, crop/rotate | Done (awaiting Pixel 9 test) |
-| 2 | Backend + Claude call + schema validation, tested on sample images | Next |
-| 3 | Red overlay with tap-for-explanation; app wired to backend | |
-| 4 | Corrections list with math rendering; SQLite history | |
-| 5 | Unit selector, SymPy verification, OCR box snapping, error states | |
-| 6 | Device testing on the Pixel 9, known limitations | |
+| 1 | Scaffold, navigation, capture, crop/rotate | Done |
+| 2 | Backend + Claude call + schema validation, tested on sample images | Done |
+| 3 | Red overlay with tap-for-explanation; app wired to backend | Done (tested on the Pixel 9a) |
+| 4 | Corrections list with math rendering; SQLite history | Done |
+| 5 | Unit selector, SymPy verification, box snapping (ink-based), error states, hosting the server | Done (hosting: Dockerfile ready, provider not chosen yet) |
+| 6 | **Differential equations support** (once the app is almost complete), then device testing on the Pixel 9 and known limitations | Done |
+| 7 | **Usage tracker + cost reduction** (requested 2026-10-06) | |
+| 8 | **Step-by-step tutor:** work out a problem you select (requested 2026-10-06) | |
+
+### Phase 6 notes (2026-10-06)
+
+- **Prompt:** a rule listing real DE mistakes (constant added after
+  exponentiating, lost constant, wrong integrating factor, characteristic-root
+  errors, a particular guess that duplicates a homogeneous solution, initial
+  conditions applied too early), and that equivalent forms or implicit
+  solutions are fine. Slope/direction fields are treated like graphs.
+- **Checker:** new `cas_check` kind `ode_solution`. The equation is written
+  `= 0` with `y`, `yp`, `ypp`; the worker plugs each explicit solution into it,
+  checks the initial conditions (`conditions`, e.g. "y(0) = 1, yp(0) = 2"),
+  and for a general solution requires one arbitrary constant per order, so a
+  lost `+ C` counts as wrong even though e^x does solve y' = y. Implicit
+  solutions are "none".
+- **Test pages:** no photographed DE work yet, so
+  `services/api/scripts/make-de-pages.ts` draws two worksheets in a
+  handwriting font with four known mistakes and writes `answers-de.md`.
+  Real pages should replace them.
+- **Eval:** DE set 4/4 caught, 0 false flags, 4/4 fixes SymPy-verified, boxes
+  4/4 snapped, ~17 s and 3.5¢ per page. Exam 1 re-run after the prompt change:
+  8/8 caught, 0 false flags, p50 12.6 s.
+- The "Differential equations" unit was already in the Settings picker.
+
+### Original DE plan (requested 2026-10-06)
+
+Add once the core app is almost complete (start of Phase 6). The grader
+already reads DE work in general, but it needs dedicated support:
+- Prompt guidance for the common types: separable, first-order linear
+  (integrating factor), exact, homogeneous, Bernoulli, second-order constant
+  coefficient (characteristic equation, undetermined coefficients, variation
+  of parameters), initial value problems, and slope fields/direction fields.
+- Typical mistakes to look for: lost constant of integration, wrong
+  integrating factor, dropped absolute value in ln|y|, wrong characteristic
+  roots, applying initial conditions before finding the general solution.
+- SymPy verification: `dsolve` / `checkodesol` to confirm a proposed solution
+  satisfies the equation and initial conditions (builds on the Phase 5 checker).
+- A "Differential Equations" option in the unit selector.
+- DE test pages with an answer key (`answers-de.md`) and an eval run.
+
+### Phase 7: usage tracker and cost reduction (requested 2026-10-06)
+
+Usage tracker:
+- The server already computes each request's tokens and cost
+  (`meta.cost_usd`). Record every request (time, model, effort, tokens, cost,
+  latency, retries, success/error) in a small server-side log or SQLite table.
+  Never store images.
+- A `/v1/usage` endpoint and a Usage section in Settings: pages and dollars
+  today / this month / all time, average cost per page, most expensive pages.
+- A monthly budget in `.env` (e.g. `MONTHLY_BUDGET_USD`): warn in the app near
+  the limit and refuse new grades once it's hit. Keep the Anthropic Console
+  spend limit as the hard backstop.
+
+Cost reduction, measured with the eval before and after each change (accuracy
+must not drop):
+- Prompt caching for the fixed system prompt.
+- Image size: test a 1568 px vs 2048 px long edge (fewer image tokens) on the
+  exam set and Pixel photos.
+- Effort: keep `high` as default but try `medium` for simple, short pages if
+  the eval allows; re-check line accuracy, since lower effort boxed wrong lines
+  in Phase 2.
+- Don't regrade identical photos: hash the image and reuse the saved result.
+- Trim output: shorter explanations and notation notes where it doesn't hurt.
+- Run the `claude-api` skill's `cost-optimize` workflow for a ranked list.
+
+### Phase 8: step-by-step tutor (requested 2026-10-06)
+
+A "Show me how" button that works out a problem the student selects, like a
+tutor at the board:
+- Select a problem: tap its label on the results page, pick it from a list, or
+  photograph/type a single equation.
+- A new endpoint (e.g. `POST /v1/solve`) asks Claude for a full worked
+  solution as structured steps: each step's math (LaTeX → SVG), a one-line
+  "why", and the rule used, plus the final answer.
+- App: steps revealed one at a time ("Next step") so the student can try each
+  step first, with a "show all" option.
+- Where the student already made a mistake, start from the problem and point
+  out where their work went off track.
+- Verify the final answer with SymPy where possible (Phase 5 checker), and
+  count tutor requests in the usage tracker (Phase 7).
+
+### Phase 5 notes (2026-10-06)
+
+- **SymPy checker** (`services/cas/cas_worker.py`, driven by
+  `services/api/src/cas.ts`): for each mistake the model also writes a
+  `cas_check` in SymPy syntax (equivalent / derivative / antiderivative /
+  definite_integral / limit / evaluate, or none). A long-lived Python worker
+  confirms the fix is right and the student's version is wrong. Inputs pass an
+  allow-list before `parse_expr`; each check has a 4 s timeout. Verdicts show
+  in the app as "Checked by the math engine" or an amber "couldn't confirm".
+  Exam 1 eval: 6 verified, 0 disagreements, 2 not checkable (graph reasoning,
+  a missing line).
+- **Box snapping** (`boxes.ts`): instead of OCR, each model box is snapped to
+  the ink around it (background-subtracted dark pixels, row then column runs).
+  A snapped box is used only if it still overlaps the model's box well; else
+  the model's box stays. Eval: 8 of 8 boxes snapped.
+- **Blur check:** pages scoring under `MIN_SHARPNESS` (default 15) are
+  rejected before calling Claude. Calibration: sharp photos/scans score
+  280-600, readable blur ~30, unreadable blur under ~6.
+- **Unit selector** in Settings, stored with `expo-sqlite/kv-store`, sent with
+  each page.
+- **Errors:** client gives up after 120 s with a "taking too long" message and
+  Try again.
+- **Cost/latency:** the extra `cas_check` output raised p50 to ~15 s and p95
+  to ~21 s, about 3.4¢ per exam page (5.4¢ for a dense photo). Phase 7 looks
+  at trimming this.
+- **Hosting:** `Dockerfile` at the repo root (Node + Python + SymPy) runs on
+  any container host (Fly.io, Render, Cloud Run). Alternative with no cloud
+  account: keep the server on the PC and reach it through Tailscale or a
+  Cloudflare tunnel. Not tested locally (no Docker on this PC).
+- **Chosen for now: Tailscale** (2026-10-06). `tailscale serve --bg 8787`
+  publishes the PC's server as `https://ty-laptop.<tailnet>.ts.net` to the
+  user's own devices only; the app's `EXPO_PUBLIC_API_URL` points there.
+  **Later: a Raspberry Pi in the dorm** hosts the server the same way (user's
+  plan); only the URL changes.
+
+### Phase 4 notes (2026-10-06)
+
+- Math notation: the server renders each step and fix to SVG with MathJax
+  (`services/api/src/math.ts`); the app draws it with `react-native-svg`
+  (`MathView`), shrinking wide expressions and falling back to text.
+- Storage: `expo-sqlite` with numbered migrations (`features/history/db.ts`).
+  `scans` holds the full GradeResult; `corrections` has one row per mistake
+  plus a `reviewed` flag. Photos are copied to the document directory and
+  stored as relative paths.
+- Both native additions (svg, sqlite) needed an app rebuild. After an
+  `expo prebuild`, restart Metro: the regenerated android/ folder can hang
+  Metro's file watcher (the app then shows a white screen).
+
+### Phase 3 notes (2026-10-06)
+
+- No native rebuild needed: marks are plain views (not react-native-svg),
+  uploads use `expo/fetch` plus `expo-file-system`, both already in the build.
+- `expo/fetch` can't upload a React Native `FormData` file by URI ("Unsupported
+  FormDataPart implementation"), so the app reads the photo's bytes and builds
+  the multipart body itself (`features/grading/multipart.ts`).
+- The model sometimes put inline LaTeX in explanations. Fixed in the prompt
+  (prose fields are plain text; 0 of 42 fields leaked afterwards) and on the
+  phone (`proseText` cleans any that slip through).
+- Exam 1 eval after the prompt change: still 8/8 caught, 0 false flags.
+- Dev setup: the phone reaches the server through `adb reverse tcp:8787`. Using
+  the app away from the computer needs a deployed server (Phase 5/6).
+
+### Phase 2 results (2026-10-06)
+
+Exam 1 set: 6 scored pages, 8 real errors, 1 all-correct page. Scored by part,
+then every flag was checked by hand against the line it marked.
+
+| Effort | Precision | Recall | Flags on the right line | Typical / slowest | Cost per page |
+| --- | --- | --- | --- | --- | --- |
+| low | 89% | 100% | 6 of 8 (4b on a correct step; 7a false flag) | 7.7 / 12.5 s | 2.3¢ |
+| medium | 100% | 100% | 7 of 8 (4b on a correct step) | 7.0 / 13.1 s | 2.4¢ |
+| high | 100% | 100% | 8 of 8 | 11.7–13.1 / 15.9–17.0 s | 3.0¢ |
+
+- **Default effort: high.** Lower effort finds the right problem but sometimes
+  boxes a correct line, which is exactly the wrong-flag harm we want to avoid.
+- **Pixel photos (7, no answer key):** checked by eye. Real errors caught with
+  tight boxes; 14–34 s per page (dense pages run long); 3–6¢ each.
+- **Guard added:** a "correction" identical to the flagged step is treated as
+  invalid output and retried.
+- **Known weakness:** a teacher's red-pen marks on already-graded pages can sway
+  the grader, even with a prompt rule to ignore them.
+- The eval scores by part, not by line. Check line accuracy in the annotated
+  images (`services/api/out/eval/...`) before changing the prompt or effort.
 
 ### Phase 2 scope
 

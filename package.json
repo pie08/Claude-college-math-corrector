@@ -2,10 +2,16 @@
   "name": "calculus-tutor",
   "private": true,
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*",
+    "services/*"
   ],
   "scripts": {
     "mobile": "npm --workspace apps/mobile run start",
+    "api": "npm --workspace services/api run dev",
+    "grade": "npm --workspace services/api run grade --",
+    "eval": "npm --workspace services/api run eval --",
+    "diagram": "node scripts/render-diagram.mjs",
     "typecheck": "npm --workspaces --if-present run typecheck",
     "lint": "npm --workspaces --if-present run lint",
     "test": "npm --workspaces --if-present run test"

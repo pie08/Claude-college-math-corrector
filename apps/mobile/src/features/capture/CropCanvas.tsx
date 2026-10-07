@@ -39,8 +39,9 @@ type Props = {
  * the UI thread; the parent only hears about the final position.
  */
 export function CropCanvas({ uri, width, height, initialRect, onChange }: Props) {
-  const edges = useSharedValue<Edges>(normalizedToEdges(initialRect, { width, height }));
-  const dragStart = useSharedValue<Edges>(edges.value);
+  const initialEdges = normalizedToEdges(initialRect, { width, height });
+  const edges = useSharedValue<Edges>(initialEdges);
+  const dragStart = useSharedValue<Edges>(initialEdges);
 
   const gestures = useMemo(() => {
     const bounds = { width, height };

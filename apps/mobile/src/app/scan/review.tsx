@@ -8,10 +8,7 @@ import { Button } from '@/components/Button';
 import { fitContain, type Size } from '@/features/capture/cropMath';
 import { radius, spacing, useAppTheme } from '@/theme';
 
-/**
- * Final check of the processed page before grading. In Phase 2 this screen
- * sends the image to the grading server and shows progress.
- */
+/** Final look at the processed page before sending it for grading. */
 export default function ReviewScreen() {
   const params = useLocalSearchParams<{ uri: string; width: string; height: string }>();
   const { colors } = useAppTheme();
@@ -42,10 +39,19 @@ export default function ReviewScreen() {
         <View style={[styles.notice, { backgroundColor: colors.surfaceAlt }]}>
           <Ionicons name="information-circle-outline" size={20} color={colors.textMuted} />
           <Text style={[styles.noticeText, { color: colors.textMuted }]}>
-            Grading isn&apos;t connected yet. Image ready: {image.width} × {image.height} px.
+            Make sure every step you want checked is in the picture.
           </Text>
         </View>
-        <Button label="Check my work" icon="sparkles" onPress={() => {}} disabled />
+        <Button
+          label="Check my work"
+          icon="sparkles"
+          onPress={() =>
+            router.push({
+              pathname: '/scan/grading',
+              params: { uri: params.uri, width: params.width, height: params.height },
+            })
+          }
+        />
         <Button label="Scan a different page" icon="camera-outline" variant="secondary" onPress={() => router.back()} />
       </View>
     </View>

@@ -17,6 +17,7 @@ export type Palette = {
   error: string;
   errorSoft: string;
   unclear: string;
+  unclearSoft: string;
   success: string;
   /** Backdrop behind images being cropped or reviewed. */
   canvas: string;
@@ -36,6 +37,7 @@ export const lightPalette: Palette = {
   error: '#D92D20',
   errorSoft: 'rgba(217, 45, 32, 0.14)',
   unclear: '#B54708',
+  unclearSoft: 'rgba(181, 71, 8, 0.12)',
   success: '#067647',
   canvas: '#0B0C0F',
   scrim: 'rgba(0, 0, 0, 0.55)',
@@ -53,6 +55,7 @@ export const darkPalette: Palette = {
   error: '#F97066',
   errorSoft: 'rgba(249, 112, 102, 0.18)',
   unclear: '#FDB022',
+  unclearSoft: 'rgba(253, 176, 34, 0.16)',
   success: '#47CD89',
   canvas: '#000000',
   scrim: 'rgba(0, 0, 0, 0.6)',

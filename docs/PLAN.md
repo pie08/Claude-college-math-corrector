@@ -89,8 +89,8 @@ UI rules:
 | 1 | Scaffold, navigation, capture, crop/rotate | Done (awaiting Pixel 9 test) |
 | 2 | Backend + Claude call + schema validation, tested on sample images | Done |
 | 3 | Red overlay with tap-for-explanation; app wired to backend | Done (tested on the Pixel 9a) |
-| 4 | Corrections list with math rendering; SQLite history | Next |
-| 5 | Unit selector, SymPy verification, OCR box snapping, error states | |
+| 4 | Corrections list with math rendering; SQLite history | Done |
+| 5 | Unit selector, SymPy verification, OCR box snapping, error states, hosting the server | Next |
 | 6 | **Differential equations support** (once the app is almost complete), then device testing on the Pixel 9 and known limitations | |
 
 ### To do near the end: differential equations (requested 2026-10-06)
@@ -108,6 +108,19 @@ already reads DE work in general, but it needs dedicated support:
   satisfies the equation and initial conditions (builds on the Phase 5 checker).
 - A "Differential Equations" option in the unit selector.
 - DE test pages with an answer key (`answers-de.md`) and an eval run.
+
+### Phase 4 notes (2026-10-06)
+
+- Math notation: the server renders each step and fix to SVG with MathJax
+  (`services/api/src/math.ts`); the app draws it with `react-native-svg`
+  (`MathView`), shrinking wide expressions and falling back to text.
+- Storage: `expo-sqlite` with numbered migrations (`features/history/db.ts`).
+  `scans` holds the full GradeResult; `corrections` has one row per mistake
+  plus a `reviewed` flag. Photos are copied to the document directory and
+  stored as relative paths.
+- Both native additions (svg, sqlite) needed an app rebuild. After an
+  `expo prebuild`, restart Metro: the regenerated android/ folder can hang
+  Metro's file watcher (the app then shows a white screen).
 
 ### Phase 3 notes (2026-10-06)
 

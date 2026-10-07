@@ -14,17 +14,18 @@ of every phase.
 
 ![App diagram](app-diagram.png)
 
-**Status: Phase 3 of 6.** Scan or pick a page, crop it, tap "Check my work",
+**Status: Phase 4 of 6.** Scan or pick a page, crop it, tap "Check my work",
 and the page comes back with red marks on mistakes; tap a mark for the
-explanation and fix. Results aren't saved yet (Phase 4).
+explanation and fix in real math notation. Every graded page is saved on the
+phone: reopen it from History, and study all your mistakes in Corrections.
 
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 1 | Scaffold, navigation, capture, crop/rotate | Done |
 | 2 | Backend proxy, Claude vision call, JSON schema validation | Done |
 | 3 | Red error overlay with tap-for-explanation | Done |
-| 4 | Corrections list with math rendering, local history | Next |
-| 5 | Unit selector, SymPy verification, OCR box snapping, error states | |
+| 4 | Corrections list with math rendering, local history | Done |
+| 5 | Unit selector, SymPy verification, OCR box snapping, error states, hosting | Next |
 | 6 | Differential equations support, on-device testing, known limitations | |
 
 ## Repository layout
@@ -208,6 +209,18 @@ npm run typecheck   # tsc
 npm run lint        # ESLint (eslint-config-expo)
 npm test            # Jest (app) and Vitest (server) unit tests; no API calls
 ```
+
+## Phase 4 test checklist
+
+1. **Saved:** grade a page, then open **History**. It's listed with the date,
+   mistake count and summary; tap it to reopen the page with its marks.
+2. **Corrections:** each mistake shows "You wrote" and the "Fix" in math
+   notation. Tap a card to jump to that mark on its page.
+3. **Review:** "Got it" moves a card out of "To review"; "All" shows it again
+   with "Review again". Topic chips appear once you have two or more concepts.
+4. **Survives restarts:** swipe the app away and reopen it. History and
+   Corrections are still there.
+5. **Delete:** long-press a scan in History → Delete. Its corrections go too.
 
 ## Phase 3 test checklist
 

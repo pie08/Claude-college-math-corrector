@@ -39,7 +39,8 @@
           "photosPermission": "Calculus Tutor lets you pick a photo of your math work to check.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-sqlite"
     ]
   }
 }

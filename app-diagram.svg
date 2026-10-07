@@ -36,7 +36,7 @@
 
   <!-- Header -->
   <text class="title" x="40" y="52">Calculus Tutor: how the app works</text>
-  <text class="subtitle" x="40" y="78">Updated at the end of Phase 3 (2026-10-06). Phases: 1 capture ✓ · 2 grading server ✓ · 3 overlay + wiring ✓ · 4 corrections + history · 5 unit, SymPy, OCR · 6 differential equations + device testing</text>
+  <text class="subtitle" x="40" y="78">Updated at the end of Phase 4 (2026-10-06). Phases: 1 capture ✓ · 2 grading server ✓ · 3 overlay + wiring ✓ · 4 corrections + history ✓ · 5 unit, SymPy, OCR · 6 differential equations + device testing</text>
 
   <!-- Legend -->
   <rect class="built" x="1085" y="30" width="22" height="16" rx="3"/><text class="d" x="1114" y="43">Built</text>
@@ -79,17 +79,16 @@
   <text class="d" x="62" y="624">Red ✕ boxes = mistakes, amber dashed ? = unreadable; tap → fix sheet</text>
   <text class="f" x="62" y="641">scan/results/[id].tsx · PageOverlay.tsx · IssueSheet.tsx</text>
 
-  <rect class="next" x="45" y="664" width="520" height="70" rx="10"/>
-  <text class="h" x="62" y="690">7. Corrections list + history</text>
-  <text class="d" x="62" y="710">Math rendered as SVG; scans and fixes saved on the phone (SQLite)</text>
-  <text class="d" x="62" y="726">(results are in memory only until then)</text>
-  <text class="tag" x="490" y="690" fill="#3651d4">PHASE 4</text>
+  <rect class="built" x="45" y="664" width="520" height="70" rx="10"/>
+  <text class="h" x="62" y="690">7. Saved: History + Corrections tabs</text>
+  <text class="d" x="62" y="710">SQLite + photos in app storage; math in real notation; "Got it" review</text>
+  <text class="f" x="62" y="727">features/history/ (db, repository) · (tabs)/history · corrections</text>
 
-  <rect class="planned" x="45" y="750" width="520" height="90" rx="10"/>
+  <rect class="next" x="45" y="750" width="520" height="90" rx="10"/>
   <text class="h" x="62" y="776">8. Polish</text>
   <text class="d" x="62" y="796">Unit selector in Settings · on-device OCR line boxes sent with the</text>
-  <text class="d" x="62" y="813">photo · error screens (offline, blurry, no math found)</text>
-  <text class="tag" x="490" y="776" fill="#6b7280">PHASE 5</text>
+  <text class="d" x="62" y="813">photo · error screens (offline, blurry, no math found) · hosting</text>
+  <text class="tag" x="490" y="776" fill="#3651d4">PHASE 5</text>
 
   <!-- flow arrows within the app -->
   <path class="flow" d="M305,218 V232"/>
@@ -130,16 +129,22 @@
   <text class="d" x="672" y="554">Pixel boxes → 0–1 · ids · notation notes · time, tokens, cost</text>
   <text class="f" x="672" y="571">packages/shared/src/grade.ts (shared with the app)</text>
 
-  <rect class="planned" x="655" y="594" width="520" height="90" rx="10"/>
-  <text class="h" x="672" y="620">F. Verify &amp; refine</text>
-  <text class="d" x="672" y="640">SymPy checks each correction (Python, services/cas) · snap boxes</text>
-  <text class="d" x="672" y="657">to OCR lines · LaTeX → SVG for the Corrections list</text>
-  <text class="tag" x="1080" y="620" fill="#6b7280">PHASE 4–5</text>
+  <rect class="built" x="655" y="594" width="520" height="70" rx="10"/>
+  <text class="h" x="672" y="620">F. Render math (LaTeX → SVG)</text>
+  <text class="d" x="672" y="640">MathJax draws each step and fix; the phone shows it with react-native-svg</text>
+  <text class="f" x="672" y="657">src/math.ts</text>
+
+  <rect class="next" x="655" y="680" width="520" height="70" rx="10"/>
+  <text class="h" x="672" y="706">G. Verify &amp; refine</text>
+  <text class="d" x="672" y="726">SymPy checks each correction (services/cas) · snap boxes to OCR lines</text>
+  <text class="tag" x="1090" y="706" fill="#3651d4">PHASE 5</text>
 
   <path class="flow" d="M915,218 V232"/>
   <path class="flow" d="M915,304 V318"/>
   <path class="flow" d="M915,406 V420"/>
   <path class="flow" d="M915,492 V506"/>
+  <path class="flow" d="M915,578 V592"/>
+  <path class="flow" d="M915,664 V678"/>
 
   <!-- ===== Column C: external + dev tools ===== -->
   <rect class="ext" x="1245" y="300" width="230" height="110" rx="12"/>

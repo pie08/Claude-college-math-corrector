@@ -1,7 +1,9 @@
 import { Stack, ThemeProvider } from 'expo-router';
+import { SQLiteProvider } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { DATABASE_NAME, migrateDatabase } from '@/features/history/db';
 import { useAppTheme } from '@/theme';
 
 export default function RootLayout() {
@@ -9,6 +11,8 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      {/* Saved scans and corrections; the schema is migrated before anything renders. */}
+      <SQLiteProvider databaseName={DATABASE_NAME} onInit={migrateDatabase}>
       <ThemeProvider value={theme.navigation}>
         <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -35,6 +39,7 @@ export default function RootLayout() {
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
+      </SQLiteProvider>
     </GestureHandlerRootView>
   );
 }

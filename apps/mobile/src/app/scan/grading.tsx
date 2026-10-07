@@ -1,12 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { describeGradingError, gradePage, GradingError, type GradingProgress } from '@/features/grading/api';
-import { saveScan } from '@/features/grading/store';
+import { saveScan } from '@/features/history/repository';
 import { radius, spacing, useAppTheme } from '@/theme';
 
 /** The steps shown while grading, in order, keyed by the server's stages. */
@@ -27,6 +28,7 @@ export default function GradingScreen() {
   const [attempt, setAttempt] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
+  const db = useSQLiteContext();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -35,14 +37,16 @@ export default function GradingScreen() {
     const timer = setInterval(() => setElapsed(Math.floor((Date.now() - started) / 1000)), 1000);
 
     gradePage(params.uri, { signal: controller.signal, onProgress: setProgress })
-      .then((result) => {
-        const scan = saveScan({
+      .then((result) =>
+        saveScan(db, {
           imageUri: params.uri,
           width: Number(params.width),
           height: Number(params.height),
           result,
-        });
-        router.replace({ pathname: '/scan/results/[id]', params: { id: scan.id } });
+        }),
+      )
+      .then((id) => {
+        if (!controller.signal.aborted) router.replace({ pathname: '/scan/results/[id]', params: { id } });
       })
       .catch((e: unknown) => {
         if (controller.signal.aborted) return;
@@ -54,7 +58,7 @@ export default function GradingScreen() {
       controller.abort();
       clearInterval(timer);
     };
-  }, [params.uri, params.width, params.height, attempt]);
+  }, [params.uri, params.width, params.height, attempt, db]);
 
   const current = STEPS.findIndex((s) => s.stages.includes(progress.stage));
 

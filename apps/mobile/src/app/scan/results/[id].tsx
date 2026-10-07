@@ -1,32 +1,58 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo, useState, type ComponentProps } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSQLiteContext } from 'expo-sqlite';
+import { useEffect, useMemo, useState, type ComponentProps } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
 import { proseText } from '@/features/grading/latexText';
-import { getScan } from '@/features/grading/store';
+import { getScan, type GradedScan } from '@/features/history/repository';
 import { IssueSheet } from '@/features/results/IssueSheet';
 import { marksOf, type Mark } from '@/features/results/marks';
 import { PageOverlay } from '@/features/results/PageOverlay';
 import { radius, spacing, useAppTheme } from '@/theme';
 
+/** Results for a saved scan. `mark` (1-based) opens that mark's explanation right away. */
 export default function ResultsScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const scan = getScan(id);
+  const { id, mark: markParam } = useLocalSearchParams<{ id: string; mark?: string }>();
+  const db = useSQLiteContext();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const marks = useMemo(() => (scan ? marksOf(scan.result) : []), [scan]);
+  const [scan, setScan] = useState<GradedScan | null | undefined>(undefined);
   const [open, setOpen] = useState<number | null>(null);
+  const marks = useMemo(() => (scan ? marksOf(scan.result) : []), [scan]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getScan(db, id).then((loaded) => {
+      if (cancelled) return;
+      setScan(loaded);
+      const wanted = Number(markParam);
+      if (loaded && wanted > 0) {
+        const index = marksOf(loaded.result).findIndex((m) => m.number === wanted);
+        if (index >= 0) setOpen(index);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [db, id, markParam]);
+
+  if (scan === undefined) {
+    return (
+      <View style={[styles.screen, styles.loading, { backgroundColor: colors.background }]}>
+        <ActivityIndicator color={colors.primary} />
+      </View>
+    );
+  }
 
   if (!scan) {
-    // Results live in memory until Phase 4 adds history.
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <EmptyState icon="time-outline" title="Result not available" body="This result was cleared when the app restarted. Scan the page again.">
-          <Button label="Scan a page" icon="camera" onPress={() => router.dismissAll()} />
+        <EmptyState icon="time-outline" title="Result not found" body="This scan may have been deleted.">
+          <Button label="Back" icon="arrow-back" onPress={() => router.back()} />
         </EmptyState>
       </View>
     );
@@ -170,6 +196,10 @@ function Banner(props: { icon: IconName; color: string; background: string; titl
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+  },
+  loading: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   panel: {
     maxHeight: '45%',

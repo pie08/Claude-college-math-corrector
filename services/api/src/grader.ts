@@ -1,9 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
-import type { GradeErrorCode, GradeResult, GradeStage } from '@calc/shared';
+import type { GradeErrorCode, GradeResult, GradeStage, Problem } from '@calc/shared';
 
 import type { GraderConfig } from './config';
 import type { PreparedImage } from './image';
+import { renderMathSvg } from './math';
 import { ModelGradeSchema } from './modelOutput';
 import { estimateCost } from './pricing';
 import { SYSTEM_PROMPT, userPrompt } from './prompt';
@@ -110,7 +111,7 @@ export async function gradePage(
       if (validated.ok) {
         return {
           page_status: parsed.data.page_status,
-          problems: validated.problems,
+          problems: withMathSvgs(validated.problems),
           overall_summary: parsed.data.overall_summary.trim(),
           meta: {
             model: servedBy,
@@ -140,6 +141,18 @@ export async function gradePage(
   }
 
   throw new GradeError('grading_failed', 'Grading failed.');
+}
+
+/** Renders each issue's LaTeX to SVG so the phone can show real math notation. */
+function withMathSvgs(problems: Problem[]): Problem[] {
+  return problems.map((problem) => ({
+    ...problem,
+    issues: problem.issues.map((issue) => ({
+      ...issue,
+      transcription_svg: renderMathSvg(issue.transcription),
+      correction_svg: issue.correction ? renderMathSvg(issue.correction) : null,
+    })),
+  }));
 }
 
 function responseText(response: Anthropic.Beta.BetaMessage): string {

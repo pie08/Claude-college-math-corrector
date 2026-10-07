@@ -20,3 +20,6 @@ calculus work through a small grading server that calls Claude.
 - Live grading (`npm run grade`, `npm run eval`) costs real API money: say the
   expected cost before running large sweeps.
 - Run `npm run typecheck`, `npm run lint` and `npm test` before committing.
+- **User request:** once the app is almost complete (start of Phase 6), add
+  differential equations support. Details in `docs/PLAN.md` → "To do near
+  the end: differential equations".

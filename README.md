@@ -25,7 +25,7 @@ explanation and fix. Results aren't saved yet (Phase 4).
 | 3 | Red error overlay with tap-for-explanation | Done |
 | 4 | Corrections list with math rendering, local history | Next |
 | 5 | Unit selector, SymPy verification, OCR box snapping, error states | |
-| 6 | On-device testing, known limitations | |
+| 6 | Differential equations support, on-device testing, known limitations | |
 
 ## Repository layout
 

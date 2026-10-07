@@ -29,6 +29,13 @@ export const IssueSchema = z.object({
   explanation: z.string(),
   /** LaTeX of the corrected step. Always set for `incorrect`, null for `unclear`. */
   correction: z.string().nullable(),
+  /**
+   * The transcription and correction rendered as SVG math (sized for 18px
+   * text, `currentColor` fills). Null when the LaTeX couldn't be rendered;
+   * show the text version then.
+   */
+  transcription_svg: z.string().nullable(),
+  correction_svg: z.string().nullable(),
   /** The concept or rule involved, e.g. "chain rule". */
   concept: z.string(),
   /** Set when later steps follow correctly from this mistake. */

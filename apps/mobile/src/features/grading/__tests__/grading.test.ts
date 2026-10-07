@@ -62,6 +62,10 @@ describe('latexToText', () => {
     expect(proseText('It has to come out as \\sqrt{4}=2, not 4.')).toBe('It has to come out as √4=2, not 4.');
     expect(proseText('With 2 it becomes 2\\cdot 1\\cdot(-3)=-6.')).toBe('With 2 it becomes 2 · 1 · (-3)=-6.');
     expect(proseText('Nice work on 2c.  Keep going.')).toBe('Nice work on 2c.  Keep going.');
+    // Plain typed math must survive untouched (it was once mangled to "4^(()1/2)").
+    expect(proseText('Pulling it out of the 1/2 power gives 4^(1/2) = 2.')).toBe(
+      'Pulling it out of the 1/2 power gives 4^(1/2) = 2.',
+    );
   });
 
   it('keeps unknown commands readable instead of dropping them', () => {

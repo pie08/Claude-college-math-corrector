@@ -4,7 +4,8 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
-import { latexToText, proseText } from '@/features/grading/latexText';
+import { MathView } from '@/components/MathView';
+import { proseText } from '@/features/grading/latexText';
 import { radius, spacing, useAppTheme } from '@/theme';
 
 import type { Mark } from './marks';
@@ -41,7 +42,7 @@ export function IssueSheet({ marks, index, onChangeIndex }: Props) {
             <Header mark={mark} total={marks.length} onClose={close} />
 
             <Section label="You wrote">
-              <Text style={[styles.math, { color: colors.text }]}>{latexToText(mark.transcription)}</Text>
+              <MathView latex={mark.transcription} svg={mark.transcription_svg} color={colors.text} />
             </Section>
 
             <Section label={mark.status === 'incorrect' ? 'What went wrong' : "What I couldn't read"}>
@@ -54,7 +55,7 @@ export function IssueSheet({ marks, index, onChangeIndex }: Props) {
                   <Ionicons name="checkmark-circle" size={18} color={colors.success} />
                   <Text style={[styles.label, { color: colors.success }]}>Fix</Text>
                 </View>
-                <Text style={[styles.math, { color: colors.text }]}>{latexToText(mark.correction)}</Text>
+                <MathView latex={mark.correction} svg={mark.correction_svg} color={colors.text} />
               </View>
             ) : null}
 
@@ -174,10 +175,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-  },
-  math: {
-    fontSize: 18,
-    lineHeight: 26,
   },
   body: {
     fontSize: 16,

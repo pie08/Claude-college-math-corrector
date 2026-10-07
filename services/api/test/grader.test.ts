@@ -14,6 +14,9 @@ describe('gradePage', () => {
     expect(issue.bbox).toEqual({ x: 0.1, y: 0.15, w: 0.5, h: 0.03 });
     expect(issue.id).toBe('p1i1');
     expect(issue.verification).toBe('not_checked');
+    // LaTeX is rendered to SVG math for the phone.
+    expect(issue.transcription_svg).toMatch(/^<svg [^>]*width="[\d.]+" height="[\d.]+"/);
+    expect(issue.correction_svg).toContain('currentColor');
     expect(result.meta.retries).toBe(0);
     // 3000 in at $2/M + 2000 out at $10/M
     expect(result.meta.cost_usd).toBeCloseTo(0.026);

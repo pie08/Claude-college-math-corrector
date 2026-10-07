@@ -149,7 +149,9 @@ export function latexToText(latex: string): string {
  * into plain text, leaving ordinary sentences untouched.
  */
 export function proseText(text: string): string {
-  return /[\\^{}]/.test(text) ? latexToText(text) : text;
+  // Only real LaTeX (a \command or a ^{...}/_{...} group) is converted; plain
+  // math like "4^(1/2)" or "x^2" is already readable and left alone.
+  return /\\[a-zA-Z]|[\^_]\{/.test(text) ? latexToText(text) : text;
 }
 
 /** Adds parentheses unless the expression is a single number or symbol. */

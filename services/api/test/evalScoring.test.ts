@@ -26,6 +26,8 @@ function result(problems: { label: string; incorrect?: number; unclear?: number;
     bbox: { x: 0, y: 0, w: 0.1, h: 0.1 },
     explanation: '',
     correction: status === 'incorrect' ? 'fix' : null,
+    transcription_svg: null,
+    correction_svg: null,
     concept: '',
     later_steps_note: null,
     verification: 'not_checked' as const,

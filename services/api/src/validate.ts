@@ -50,6 +50,9 @@ export function validateModelGrade(grade: ModelGrade, image: { width: number; he
           explanation: issue.explanation.trim(),
           // A correction for unreadable work would be a guess; drop it.
           correction: issue.status === 'incorrect' ? (issue.correction ?? '').trim() : null,
+          // Filled in by the grader once the result is valid.
+          transcription_svg: null,
+          correction_svg: null,
           concept: issue.concept.trim(),
           later_steps_note: issue.later_steps_note?.trim() || null,
           verification: 'not_checked' as const,

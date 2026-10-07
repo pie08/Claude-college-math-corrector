@@ -91,7 +91,23 @@ UI rules:
 | 3 | Red overlay with tap-for-explanation; app wired to backend | Done (tested on the Pixel 9a) |
 | 4 | Corrections list with math rendering; SQLite history | Next |
 | 5 | Unit selector, SymPy verification, OCR box snapping, error states | |
-| 6 | Device testing on the Pixel 9, known limitations | |
+| 6 | **Differential equations support** (once the app is almost complete), then device testing on the Pixel 9 and known limitations | |
+
+### To do near the end: differential equations (requested 2026-10-06)
+
+Add once the core app is almost complete (start of Phase 6). The grader
+already reads DE work in general, but it needs dedicated support:
+- Prompt guidance for the common types: separable, first-order linear
+  (integrating factor), exact, homogeneous, Bernoulli, second-order constant
+  coefficient (characteristic equation, undetermined coefficients, variation
+  of parameters), initial value problems, and slope fields/direction fields.
+- Typical mistakes to look for: lost constant of integration, wrong
+  integrating factor, dropped absolute value in ln|y|, wrong characteristic
+  roots, applying initial conditions before finding the general solution.
+- SymPy verification: `dsolve` / `checkodesol` to confirm a proposed solution
+  satisfies the equation and initial conditions (builds on the Phase 5 checker).
+- A "Differential Equations" option in the unit selector.
+- DE test pages with an answer key (`answers-de.md`) and an eval run.
 
 ### Phase 3 notes (2026-10-06)
 

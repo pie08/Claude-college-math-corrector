@@ -1,0 +1,194 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1080" viewBox="0 0 1500 1080" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <!--
+    App diagram. Update at the end of every phase (see CLAUDE.md), then run
+    `npm run diagram` to regenerate app-diagram.png.
+    Box styles: .built = done, .next = the coming phase, .planned = later phases.
+  -->
+  <defs>
+    <style>
+      .bg { fill: #ffffff; }
+      .title { font-size: 30px; font-weight: 700; fill: #12141a; }
+      .subtitle { font-size: 15px; fill: #5a6070; }
+      .col { font-size: 19px; font-weight: 700; fill: #12141a; }
+      .colsub { font-size: 13px; fill: #5a6070; }
+      .h { font-size: 16px; font-weight: 700; fill: #12141a; }
+      .d { font-size: 13px; fill: #3d4250; }
+      .f { font-size: 12px; fill: #5a6070; font-family: Consolas, Menlo, monospace; }
+      .tag { font-size: 11px; font-weight: 700; }
+      .built { fill: #e9f6ef; stroke: #2e8b57; stroke-width: 2; }
+      .next { fill: #e8eefc; stroke: #3651d4; stroke-width: 2; }
+      .planned { fill: #f4f4f5; stroke: #9aa0a6; stroke-width: 2; stroke-dasharray: 7 5; }
+      .ext { fill: #fff6e5; stroke: #c27c0e; stroke-width: 2; }
+      .flow { fill: none; stroke: #3d4250; stroke-width: 2; marker-end: url(#arrow); }
+      .flowblue { fill: none; stroke: #3651d4; stroke-width: 2.5; marker-end: url(#arrowblue); }
+      .lbl { font-size: 13px; font-weight: 600; fill: #3651d4; }
+      .panel { fill: #fafafa; stroke: #dfe2e8; stroke-width: 1.5; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3d4250"/>
+    </marker>
+    <marker id="arrowblue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3651d4"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1500" height="1080"/>
+
+  <!-- Header -->
+  <text class="title" x="40" y="52">Calculus Tutor: how the app works</text>
+  <text class="subtitle" x="40" y="78">Updated at the end of Phase 2 (2026-10-06). Phases: 1 capture ✓ · 2 grading server ✓ · 3 overlay + wiring · 4 corrections + history · 5 unit, SymPy, OCR · 6 device testing</text>
+
+  <!-- Legend -->
+  <rect class="built" x="1085" y="30" width="22" height="16" rx="3"/><text class="d" x="1114" y="43">Built</text>
+  <rect class="next" x="1170" y="30" width="22" height="16" rx="3"/><text class="d" x="1199" y="43">Next phase</text>
+  <rect class="planned" x="1290" y="30" width="22" height="16" rx="3"/><text class="d" x="1319" y="43">Planned</text>
+  <rect class="ext" x="1395" y="30" width="22" height="16" rx="3"/><text class="d" x="1424" y="43">External</text>
+
+  <!-- ===== Column A: phone app ===== -->
+  <rect class="panel" x="25" y="100" width="560" height="760" rx="14"/>
+  <text class="col" x="45" y="130">📱 Phone app</text>
+  <text class="colsub" x="185" y="130">apps/mobile · Expo + React Native · Pixel 9</text>
+
+  <rect class="built" x="45" y="148" width="520" height="70" rx="10"/>
+  <text class="h" x="62" y="174">1. Capture the page</text>
+  <text class="d" x="62" y="194">Scanner (edges, perspective, contrast) → camera fallback → or photo library</text>
+  <text class="f" x="62" y="211">src/features/capture/captureSources.ts</text>
+
+  <rect class="built" x="45" y="234" width="520" height="70" rx="10"/>
+  <text class="h" x="62" y="260">2. Crop &amp; rotate</text>
+  <text class="d" x="62" y="280">Drag corners/edges, quarter turns; crop follows the rotation</text>
+  <text class="f" x="62" y="297">src/app/scan/crop.tsx · CropCanvas.tsx · cropMath.ts</text>
+
+  <rect class="built" x="45" y="320" width="520" height="70" rx="10"/>
+  <text class="h" x="62" y="346">3. Export the image</text>
+  <text class="d" x="62" y="366">One pass on the original: rotate, crop, JPEG, long edge ≤ 2048 px</text>
+  <text class="f" x="62" y="383">src/features/capture/imageProcessing.ts</text>
+
+  <rect class="built" x="45" y="406" width="520" height="70" rx="10"/>
+  <text class="h" x="62" y="432">4. Review screen</text>
+  <text class="d" x="62" y="452">Shows the final page; "Check my work" (disabled until Phase 3)</text>
+  <text class="f" x="62" y="469">src/app/scan/review.tsx</text>
+
+  <rect class="next" x="45" y="492" width="520" height="70" rx="10"/>
+  <text class="h" x="62" y="518">5. Send for grading + live progress</text>
+  <text class="d" x="62" y="538">Upload photo (+ current unit), show progress as events stream in</text>
+  <text class="tag" x="490" y="518" fill="#3651d4">PHASE 3</text>
+
+  <rect class="next" x="45" y="578" width="520" height="70" rx="10"/>
+  <text class="h" x="62" y="604">6. Red marks on the page</text>
+  <text class="d" x="62" y="624">Red boxes (✗ icon) for errors, amber dashed (?) for unreadable;</text>
+  <text class="d" x="62" y="641">tap a mark → explanation + fix</text>
+  <text class="tag" x="490" y="604" fill="#3651d4">PHASE 3</text>
+
+  <rect class="planned" x="45" y="664" width="520" height="70" rx="10"/>
+  <text class="h" x="62" y="690">7. Corrections list + history</text>
+  <text class="d" x="62" y="710">Math rendered as SVG; scans and fixes saved on the phone (SQLite)</text>
+  <text class="tag" x="490" y="690" fill="#6b7280">PHASE 4</text>
+
+  <rect class="planned" x="45" y="750" width="520" height="90" rx="10"/>
+  <text class="h" x="62" y="776">8. Polish</text>
+  <text class="d" x="62" y="796">Unit selector in Settings · on-device OCR line boxes sent with the</text>
+  <text class="d" x="62" y="813">photo · error screens (offline, blurry, no math found)</text>
+  <text class="tag" x="490" y="776" fill="#6b7280">PHASE 5</text>
+
+  <!-- flow arrows within the app -->
+  <path class="flow" d="M305,218 V232"/>
+  <path class="flow" d="M305,304 V318"/>
+  <path class="flow" d="M305,390 V404"/>
+  <path class="flow" d="M305,476 V490"/>
+  <path class="flow" d="M305,648 V662"/>
+  <path class="flow" d="M305,734 V748"/>
+
+  <!-- ===== Column B: grading server ===== -->
+  <rect class="panel" x="635" y="100" width="560" height="760" rx="14"/>
+  <text class="col" x="655" y="130">🖥 Grading server</text>
+  <text class="colsub" x="822" y="130">services/api · Node + TypeScript + Hono</text>
+
+  <rect class="built" x="655" y="148" width="520" height="70" rx="10"/>
+  <text class="h" x="672" y="174">A. POST /v1/grade</text>
+  <text class="d" x="672" y="194">Checks the shared secret · daily request cap · JSON or live events</text>
+  <text class="f" x="672" y="211">src/app.ts · src/server.ts (npm run api)</text>
+
+  <rect class="built" x="655" y="234" width="520" height="70" rx="10"/>
+  <text class="h" x="672" y="260">B. Prepare the image (in memory only)</text>
+  <text class="d" x="672" y="280">Fix EXIF rotation · shrink to ≤ 2048 px · sharpness (blur) score</text>
+  <text class="f" x="672" y="297">src/image.ts</text>
+
+  <rect class="built" x="655" y="320" width="520" height="86" rx="10"/>
+  <text class="h" x="672" y="346">C. Ask Claude to grade the page</text>
+  <text class="d" x="672" y="366">claude-sonnet-5-5 · effort high · strict JSON schema · refusal fallback</text>
+  <text class="d" x="672" y="383">Rules: check step vs. previous step, first error only, never guess</text>
+  <text class="f" x="672" y="400">src/grader.ts · src/prompt.ts · src/modelOutput.ts</text>
+
+  <rect class="built" x="655" y="422" width="520" height="70" rx="10"/>
+  <text class="h" x="672" y="448">D. Validate (retry once with feedback)</text>
+  <text class="d" x="672" y="468">Boxes inside the image · every error has a real fix (not a copy)</text>
+  <text class="f" x="672" y="485">src/validate.ts</text>
+
+  <rect class="built" x="655" y="508" width="520" height="70" rx="10"/>
+  <text class="h" x="672" y="534">E. Build the GradeResult</text>
+  <text class="d" x="672" y="554">Pixel boxes → 0–1 · ids · notation notes · time, tokens, cost</text>
+  <text class="f" x="672" y="571">packages/shared/src/grade.ts (shared with the app)</text>
+
+  <rect class="planned" x="655" y="594" width="520" height="90" rx="10"/>
+  <text class="h" x="672" y="620">F. Verify &amp; refine</text>
+  <text class="d" x="672" y="640">SymPy checks each correction (Python, services/cas) · snap boxes</text>
+  <text class="d" x="672" y="657">to OCR lines · LaTeX → SVG for the Corrections list</text>
+  <text class="tag" x="1080" y="620" fill="#6b7280">PHASE 4–5</text>
+
+  <path class="flow" d="M915,218 V232"/>
+  <path class="flow" d="M915,304 V318"/>
+  <path class="flow" d="M915,406 V420"/>
+  <path class="flow" d="M915,492 V506"/>
+
+  <!-- ===== Column C: external + dev tools ===== -->
+  <rect class="ext" x="1245" y="300" width="230" height="110" rx="12"/>
+  <text class="h" x="1262" y="328">Anthropic API</text>
+  <text class="d" x="1262" y="350">Claude reads the photo</text>
+  <text class="d" x="1262" y="368">and returns JSON</text>
+  <text class="f" x="1262" y="392">key: ANTHROPIC_API_KEY</text>
+
+  <path class="flow" d="M1175,350 H1243"/>
+  <path class="flow" d="M1245,375 H1177"/>
+
+  <rect class="panel" x="1245" y="450" width="230" height="234" rx="12"/>
+  <text class="h" x="1262" y="478">Dev tools</text>
+  <text class="f" x="1262" y="504">npm run grade -- &lt;img&gt;</text>
+  <text class="d" x="1262" y="522">grade photos, save boxes</text>
+  <text class="f" x="1262" y="550">npm run eval -- --set exam1</text>
+  <text class="d" x="1262" y="568">score vs. answer keys</text>
+  <text class="f" x="1262" y="596">npm test</text>
+  <text class="d" x="1262" y="614">unit tests, no API cost</text>
+  <text class="d" x="1262" y="642">Test pages + keys stay local:</text>
+  <text class="f" x="1262" y="660">services/api/test/</text>
+  <text class="f" x="1262" y="676">  fixtures/pages/</text>
+
+  <!-- ===== Cross-column flows ===== -->
+  <!-- photo up to the server -->
+  <path class="flowblue" d="M565,520 H598 V183 H653"/>
+  <rect x="588" y="236" width="20" height="96" fill="#ffffff"/>
+  <text class="lbl" transform="translate(603,330) rotate(-90)">photo + unit</text>
+  <!-- results back to the app -->
+  <path class="flowblue" d="M655,530 H620 V613 H567"/>
+  <rect x="611" y="555" width="20" height="52" fill="#ffffff"/>
+  <text class="lbl" font-size="12" transform="translate(626,604) rotate(-90)">results</text>
+
+  <!-- ===== Bottom: contract + key facts ===== -->
+  <rect class="panel" x="25" y="880" width="845" height="175" rx="14"/>
+  <text class="col" x="45" y="910">What the server sends back (GradeResult)</text>
+  <text class="d" x="45" y="936">Streamed first as progress events: received → checking_image → reading → writing (n problems) → validating</text>
+  <text class="d" x="45" y="962">• page_status: ok | no_math_found | unreadable</text>
+  <text class="d" x="45" y="984">• problems[]: label ("2a"), issues[]: status (incorrect | unclear), box (0–1), explanation, correction (LaTeX),</text>
+  <text class="d" x="60" y="1002">concept, later_steps_note · plus notation_notes (style tips, never red)</text>
+  <text class="d" x="45" y="1024">• overall_summary (tutor voice) · meta: model, effort, time, tokens, cost, sharpness</text>
+  <text class="f" x="45" y="1044">Defined once in packages/shared/src/grade.ts, used by both app and server</text>
+
+  <rect class="panel" x="890" y="880" width="585" height="175" rx="14"/>
+  <text class="col" x="910" y="910">Key facts</text>
+  <text class="d" x="910" y="936">• Photos live on the phone. The server never saves or logs them.</text>
+  <text class="d" x="910" y="958">• Secrets in .env at the repo root (gitignored): API key, app secret.</text>
+  <text class="d" x="910" y="980">• Exam 1 test: 8/8 errors caught, 0 false flags, ~12–16 s, ~3¢/page.</text>
+  <text class="d" x="910" y="1002">• Plan, decisions and results: docs/PLAN.md</text>
+  <text class="d" x="910" y="1024">• Setup and commands: README.md</text>
+  <text class="d" x="910" y="1046">• Android build needs JAVA_HOME + ANDROID_HOME (README → Android)</text>
+</svg>

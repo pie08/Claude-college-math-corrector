@@ -8,6 +8,12 @@ A personal project, not published to app stores. The test device is a
 Google Pixel 9. The plan, decisions and phase details are in
 [`docs/PLAN.md`](docs/PLAN.md).
 
+**How it fits together:** [`app-diagram.png`](app-diagram.png) (source:
+`app-diagram.svg`; regenerate with `npm run diagram`). It's updated at the end
+of every phase.
+
+![App diagram](app-diagram.png)
+
 **Status: Phase 2 of 6.** The app captures, crops and rotates pages (Phase 1).
 The grading server reads a page with Claude and returns the mistakes with
 boxes, explanations and fixes (Phase 2). The app isn't connected to the
@@ -106,9 +112,13 @@ Install the build from the link EAS gives you, then start the bundler with
 
 1. Install [Android Studio](https://developer.android.com/studio). Its setup
    wizard installs the Android SDK, platform tools and a JDK.
-2. Set `ANDROID_HOME` to the SDK folder (shown in Android Studio under
-   Settings → Languages & Frameworks → Android SDK). Add its `platform-tools`
-   subfolder to your `PATH`.
+2. Set these user environment variables, then **open a new terminal** (open
+   ones don't see the change). On Windows with default install locations:
+   - `JAVA_HOME` = `C:\Program Files\Android\Android Studio\jbr` (the Java that
+     ships with Android Studio; fixes "JAVA_HOME is not set")
+   - `ANDROID_HOME` = `%LOCALAPPDATA%\Android\Sdk` (shown in Android Studio
+     under Settings → Languages & Frameworks → Android SDK)
+   - Add `%JAVA_HOME%\bin` and `%ANDROID_HOME%\platform-tools` to `Path`
 3. On the phone (e.g. Pixel 9): Settings → About phone → tap **Build number**
    seven times. Then turn on Settings → System → Developer options → **USB
    debugging**.

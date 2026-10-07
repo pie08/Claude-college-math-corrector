@@ -36,7 +36,7 @@
 
   <!-- Header -->
   <text class="title" x="40" y="52">Calculus Tutor: how the app works</text>
-  <text class="subtitle" x="40" y="78">Updated at the end of Phase 4 (2026-10-06). Phases: 1 capture ✓ · 2 grading server ✓ · 3 overlay + wiring ✓ · 4 corrections + history ✓ · 5 unit, SymPy, OCR · 6 diff. equations + testing · 7 usage + cost · 8 step-by-step tutor</text>
+  <text class="subtitle" x="40" y="78">Updated after Phase 4 (2026-10-06). Phases: 1 capture ✓ · 2 server ✓ · 3 overlay ✓ · 4 history ✓ · 5 unit, SymPy, OCR · 6 diff. equations + testing · 7 usage + cost · 8 step-by-step tutor</text>
 
   <!-- Legend -->
   <rect class="built" x="1085" y="30" width="22" height="16" rx="3"/><text class="d" x="1114" y="43">Built</text>

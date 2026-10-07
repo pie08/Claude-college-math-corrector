@@ -114,8 +114,10 @@ Install the build from the link EAS gives you, then start the bundler with
    wizard installs the Android SDK, platform tools and a JDK.
 2. Set these user environment variables, then **open a new terminal** (open
    ones don't see the change). On Windows with default install locations:
-   - `JAVA_HOME` = `C:\Program Files\Android\Android Studio\jbr` (the Java that
-     ships with Android Studio; fixes "JAVA_HOME is not set")
+   - `JAVA_HOME` = a **JDK 17** install, e.g. Eclipse Temurin 17 (this machine:
+     `%LOCALAPPDATA%\Programs\Temurin\jdk-17`). Don't use the Java 25 that ships
+     with Android Studio: React Native's C++ build step fails on it with
+     "A restricted method in java.lang.System has been called".
    - `ANDROID_HOME` = `%LOCALAPPDATA%\Android\Sdk` (shown in Android Studio
      under Settings → Languages & Frameworks → Android SDK)
    - Add `%JAVA_HOME%\bin` and `%ANDROID_HOME%\platform-tools` to `Path`
@@ -134,6 +136,12 @@ npx expo run:android            # or an emulator
 
 Later, when you've only changed JavaScript, run `npm run mobile` and open the
 app on the phone. Rebuild only when native dependencies change.
+
+Don't edit files in `apps/mobile/android/` by hand. That folder is generated
+from `app.json` (and gitignored); if it gets out of sync, regenerate it with
+`npx expo prebuild --platform android --clean` from `apps/mobile`. The Gradle
+"problems report" lists deprecation warnings on every build; those aren't
+errors. The real error is under "What went wrong" in the build output.
 
 **Cloud build (EAS):**
 

@@ -254,8 +254,35 @@ reachable from the phone. Two ways:
   `EXPO_PUBLIC_API_URL` at the https URL.
 
 `DAILY_REQUEST_LIMIT` (default 100) caps spending if the secret ever leaks.
-After changing `apps/mobile/.env`, restart Metro; a standalone build (no
-computer needed for Metro) is `npx expo run:android --variant release`.
+After changing `apps/mobile/.env`, restart Metro with `--clear`.
+
+## Standalone app (no cable, no Metro)
+
+Two versions of the app can sit side by side on the phone (set in
+`apps/mobile/app.config.js`):
+
+| | App ID | Name | Loads its code from |
+| --- | --- | --- | --- |
+| dev (default) | `com.example.calculustutor` | Calculus Tutor (dev) | Metro on your computer |
+| production | `com.example.calculustutor.app` | Calculus Tutor | built into the app |
+
+Each keeps its own History and Corrections. The standalone app has
+`EXPO_PUBLIC_API_URL` and the secret from `apps/mobile/.env` built in, so it
+works anywhere Tailscale is on.
+
+Build and install it (phone on USB) after committing your changes:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scriptsuild-android-release.ps1
+```
+
+The script builds the last commit in a git worktree at `C:ctb` and copies
+the APK to `dist/calculus-tutor.apk` (gitignored). The short folder matters:
+from this repo's long path, React Native's native build makes file paths over
+Windows' 260-character limit ("ninja: error: mkdir ... No such file or
+directory"). A `subst` drive alias doesn't work either: the app then starts
+with "No routes found". First build ~20 min, later ones ~5 min. The APK is
+signed with the debug key, which is fine for your own phone.
 
 ## Checks
 

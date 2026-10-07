@@ -19,3 +19,6 @@ __pycache__/
 
 # Server usage log (token counts and costs)
 services/api/data/
+
+# Built Android apps
+dist/

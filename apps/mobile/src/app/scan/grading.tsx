@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/Button';
 import { describeGradingError, gradePage, GradingError, type GradingProgress } from '@/features/grading/api';
 import { saveScan } from '@/features/history/repository';
+import { getCurrentUnit } from '@/features/settings/currentUnit';
 import { radius, spacing, useAppTheme } from '@/theme';
 
 /** The steps shown while grading, in order, keyed by the server's stages. */
@@ -29,6 +30,7 @@ export default function GradingScreen() {
   const [elapsed, setElapsed] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
   const db = useSQLiteContext();
+  const [unit] = useState(getCurrentUnit);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -36,7 +38,7 @@ export default function GradingScreen() {
     const started = Date.now();
     const timer = setInterval(() => setElapsed(Math.floor((Date.now() - started) / 1000)), 1000);
 
-    gradePage(params.uri, { signal: controller.signal, onProgress: setProgress })
+    gradePage(params.uri, { signal: controller.signal, onProgress: setProgress, unit: unit ?? undefined })
       .then((result) =>
         saveScan(db, {
           imageUri: params.uri,
@@ -58,7 +60,7 @@ export default function GradingScreen() {
       controller.abort();
       clearInterval(timer);
     };
-  }, [params.uri, params.width, params.height, attempt, db]);
+  }, [params.uri, params.width, params.height, attempt, db, unit]);
 
   const current = STEPS.findIndex((s) => s.stages.includes(progress.stage));
 
@@ -124,8 +126,9 @@ export default function GradingScreen() {
           })}
         </View>
         <Text style={[styles.hint, { color: colors.textMuted }]}>
-          {elapsed}s · usually 10–20 seconds, longer for busy pages
+          {elapsed}s · usually 15–25 seconds, longer for busy pages
         </Text>
+        {unit ? <Text style={[styles.hint, { color: colors.textMuted }]}>Unit: {unit}</Text> : null}
       </View>
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
         <Button

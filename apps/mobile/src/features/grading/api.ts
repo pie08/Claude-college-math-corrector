@@ -9,7 +9,10 @@ import { createSseParser } from './sse';
 
 export type GradingProgress = { stage: GradeStage | 'uploading'; message: string; problemsFound?: number };
 
-export type GradingErrorCode = GradeErrorCode | 'network' | 'config' | 'cancelled';
+export type GradingErrorCode = GradeErrorCode | 'network' | 'config' | 'cancelled' | 'timeout';
+
+/** Give up on a page after this long; the server normally answers in 15-25 s. */
+export const GRADING_TIMEOUT_MS = 120_000;
 
 export class GradingError extends Error {
   constructor(
@@ -27,7 +30,7 @@ export class GradingError extends Error {
  */
 export async function gradePage(
   imageUri: string,
-  opts: { onProgress?: (p: GradingProgress) => void; signal?: AbortSignal; unit?: string } = {},
+  opts: { onProgress?: (p: GradingProgress) => void; signal?: AbortSignal; unit?: string; timeoutMs?: number } = {},
 ): Promise<GradeResult> {
   if (!apiConfig.secret) {
     throw new GradingError('config', 'The app has no server secret. Set EXPO_PUBLIC_API_SECRET in apps/mobile/.env and restart the dev server.');
@@ -46,6 +49,37 @@ export async function gradePage(
   if (opts.unit) parts.push({ name: 'unit', value: opts.unit });
   const { body, contentType } = buildMultipartBody(parts);
 
+  // One signal for both the caller's Cancel and our timeout.
+  const controller = new AbortController();
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, opts.timeoutMs ?? GRADING_TIMEOUT_MS);
+  const forwardAbort = () => controller.abort();
+  opts.signal?.addEventListener('abort', forwardAbort);
+  const stopped = (): GradingError | null =>
+    timedOut
+      ? new GradingError('timeout', 'The grading server took too long to answer.')
+      : opts.signal?.aborted
+        ? new GradingError('cancelled', 'Cancelled.')
+        : null;
+
+  try {
+    return await upload(body, contentType, controller.signal, stopped, opts.onProgress);
+  } finally {
+    clearTimeout(timer);
+    opts.signal?.removeEventListener('abort', forwardAbort);
+  }
+}
+
+async function upload(
+  body: Uint8Array<ArrayBuffer>,
+  contentType: string,
+  signal: AbortSignal,
+  stopped: () => GradingError | null,
+  onProgress: ((p: GradingProgress) => void) | undefined,
+): Promise<GradeResult> {
   let response: Awaited<ReturnType<typeof fetch>>;
   try {
     response = await fetch(`${apiConfig.url}/v1/grade`, {
@@ -56,10 +90,11 @@ export async function gradePage(
         'content-type': contentType,
       },
       body,
-      signal: opts.signal,
+      signal,
     });
   } catch (error) {
-    if (opts.signal?.aborted) throw new GradingError('cancelled', 'Cancelled.');
+    const reason = stopped();
+    if (reason) throw reason;
     if (__DEV__) console.warn('Grading upload failed:', error);
     throw new GradingError('network', `Couldn't reach the grading server at ${apiConfig.url}.`);
   }
@@ -82,7 +117,7 @@ export async function gradePage(
         if (!parsed.success) continue;
         const event = parsed.data;
         if (event.type === 'progress') {
-          opts.onProgress?.({ stage: event.stage, message: event.message, problemsFound: event.problems_found });
+          onProgress?.({ stage: event.stage, message: event.message, problemsFound: event.problems_found });
         } else if (event.type === 'result') {
           return GradeResultSchema.parse(event.result);
         } else {
@@ -92,7 +127,8 @@ export async function gradePage(
     }
   } catch (error) {
     if (error instanceof GradingError) throw error;
-    if (opts.signal?.aborted) throw new GradingError('cancelled', 'Cancelled.');
+    const reason = stopped();
+    if (reason) throw reason;
     throw new GradingError('network', 'The connection to the grading server dropped.');
   } finally {
     reader.releaseLock();
@@ -113,6 +149,8 @@ export function describeGradingError(error: GradingError): { title: string; body
       return { title: 'Server rejected the app', body: "The app's secret doesn't match the server's API_SHARED_SECRET.", canRetry: false };
     case 'rate_limited':
       return { title: 'Daily limit reached', body: error.message, canRetry: false };
+    case 'timeout':
+      return { title: 'This is taking too long', body: `${error.message} Busy pages can be slow; try again, or crop to fewer problems.`, canRetry: true };
     case 'too_blurry':
       return { title: 'Photo is too blurry', body: error.message, canRetry: false };
     case 'bad_image':

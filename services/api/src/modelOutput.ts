@@ -9,6 +9,23 @@ import { z } from 'zod';
  * Structured outputs can't express numeric ranges, so bounds are checked in
  * validate.ts instead of here.
  */
+/**
+ * A machine-checkable version of the flagged step, in SymPy syntax, so the
+ * server can verify the correction independently. Unused fields are "".
+ */
+export const CasCheckSchema = z.strictObject({
+  kind: z.enum(['equivalent', 'derivative', 'antiderivative', 'definite_integral', 'limit', 'evaluate', 'none']),
+  variable: z.string(),
+  expression: z.string(),
+  point: z.string(),
+  /** "+", "-" or "both" for limits; "" otherwise (the checker treats anything else as both). */
+  direction: z.string(),
+  lower: z.string(),
+  upper: z.string(),
+  student_result: z.string(),
+  corrected_result: z.string(),
+});
+
 export const ModelIssueSchema = z.strictObject({
   status: z.enum(['incorrect', 'unclear']),
   transcription: z.string().describe('LaTeX of the flawed or unreadable step, exactly as the student wrote it'),
@@ -19,6 +36,7 @@ export const ModelIssueSchema = z.strictObject({
   correction: z.string().nullable().describe('LaTeX of the corrected step; null when status is unclear'),
   concept: z.string(),
   later_steps_note: z.string().nullable(),
+  cas_check: CasCheckSchema,
 });
 
 export const ModelProblemSchema = z.strictObject({
@@ -35,5 +53,6 @@ export const ModelGradeSchema = z.strictObject({
   overall_summary: z.string(),
 });
 
+export type CasCheck = z.infer<typeof CasCheckSchema>;
 export type ModelIssue = z.infer<typeof ModelIssueSchema>;
 export type ModelGrade = z.infer<typeof ModelGradeSchema>;

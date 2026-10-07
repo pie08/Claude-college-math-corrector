@@ -41,7 +41,9 @@ export function graderConfig(env: NodeJS.ProcessEnv = process.env): GraderConfig
     effort,
     refusalFallback: env.REFUSAL_FALLBACK !== 'off',
     maxImageEdge: Number(env.MAX_IMAGE_EDGE ?? 2048),
-    minSharpness: Number(env.MIN_SHARPNESS ?? 0),
+    // Calibrated on a Pixel photo and a scanned exam: sharp pages score 280-600,
+    // still-readable blur ~30, unreadable blur under ~6.
+    minSharpness: Number(env.MIN_SHARPNESS ?? 15),
   };
 }
 

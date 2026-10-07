@@ -41,8 +41,8 @@ export const IssueSchema = z.object({
   /** Set when later steps follow correctly from this mistake. */
   later_steps_note: z.string().nullable(),
   verification: VerificationSchema,
-  /** Where the box came from: the model, or snapped to an OCR line (Phase 5). */
-  bbox_source: z.enum(['model', 'ocr']),
+  /** Where the box came from: the model, or snapped to the handwriting ("ink"). */
+  bbox_source: z.enum(['model', 'ink', 'ocr']),
 });
 
 export const ProblemSchema = z.object({

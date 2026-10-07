@@ -2,6 +2,7 @@ import type { GradeErrorCode, GradeEvent, GradeResult } from '@calc/shared';
 import { Hono, type Context } from 'hono';
 import { streamSSE } from 'hono/streaming';
 
+import type { Checker } from './cas';
 import type { ServerConfig } from './config';
 import { gradePage, GradeError, type ModelCall, type Progress } from './grader';
 import { BadImageError, prepareImage } from './image';
@@ -47,7 +48,7 @@ export class DailyCounter {
  * otherwise the response is the GradeResult JSON. Images are processed in
  * memory and never written to disk or logged.
  */
-export function createApp(config: ServerConfig, call: ModelCall): Hono {
+export function createApp(config: ServerConfig, call: ModelCall, checker?: Checker): Hono {
   const app = new Hono();
   const counter = new DailyCounter(config.dailyLimit);
 
@@ -78,7 +79,7 @@ export function createApp(config: ServerConfig, call: ModelCall): Hono {
       if (config.minSharpness > 0 && image.sharpness < config.minSharpness) {
         throw new GradeError('too_blurry', 'This photo looks blurry. Hold steady and retake it in good light.');
       }
-      return gradePage(image, { unit }, { call, config }, onProgress);
+      return gradePage(image, { unit }, { call, config, checker }, onProgress);
     };
 
     if (c.req.header('accept')?.includes('text/event-stream')) {

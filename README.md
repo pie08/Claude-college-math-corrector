@@ -14,10 +14,12 @@ of every phase.
 
 ![App diagram](app-diagram.png)
 
-**Status: Phase 4 of 6.** Scan or pick a page, crop it, tap "Check my work",
+**Status: Phase 5 of 8.** Scan or pick a page, crop it, tap "Check my work",
 and the page comes back with red marks on mistakes; tap a mark for the
-explanation and fix in real math notation. Every graded page is saved on the
-phone: reopen it from History, and study all your mistakes in Corrections.
+explanation and fix in real math notation. Fixes are double-checked by a math
+engine (SymPy), and boxes are snapped to your handwriting. Every graded page is
+saved on the phone: reopen it from History, and study all your mistakes in
+Corrections. Pick your current unit in Settings.
 
 | Phase | Scope | Status |
 | --- | --- | --- |
@@ -25,7 +27,7 @@ phone: reopen it from History, and study all your mistakes in Corrections.
 | 2 | Backend proxy, Claude vision call, JSON schema validation | Done |
 | 3 | Red error overlay with tap-for-explanation | Done |
 | 4 | Corrections list with math rendering, local history | Done |
-| 5 | Unit selector, SymPy verification, OCR box snapping, error states, hosting | Next |
+| 5 | Unit selector, SymPy verification, box snapping, error states, hosting | Done |
 | 6 | Differential equations support, on-device testing, known limitations | |
 | 7 | Usage tracker (pages and dollars) and cost reduction | |
 | 8 | Step-by-step tutor: work out a selected problem | |
@@ -47,12 +49,14 @@ services/api/               Grading server (Node/TypeScript, Hono, Anthropic SDK
   src/prompt.ts             Grading instructions for Claude
   src/grader.ts             Claude call, validation, one retry on invalid output
   src/app.ts                HTTP API: POST /v1/grade (JSON or streamed progress)
+  src/cas.ts                Runs the SymPy checker as a child process
+  src/boxes.ts              Snaps the model's boxes to the ink on the page
   scripts/grade.ts          Command-line grader that saves annotated copies
   scripts/eval.ts           Scores the grader against answer keys
   test/fixtures/pages/      Test pages and answer keys (local only, gitignored)
+services/cas/               Python SymPy checker (cas_worker.py) and its tests
+Dockerfile                  Container image for hosting the server
 ```
-
-Phase 5 adds `services/cas` (Python SymPy checker).
 
 ## Prerequisites
 
@@ -165,6 +169,17 @@ module.
 Copy `.env.example` to `.env` in the repo root and fill in `ANTHROPIC_API_KEY`
 and `API_SHARED_SECRET`. `.env` is gitignored.
 
+The math checker needs Python 3.11+ with SymPy, in a virtual environment the
+server finds automatically:
+
+```sh
+python -m venv services/cas/.venv
+services/cas/.venv/Scripts/pip install -r services/cas/requirements.txt   # macOS/Linux: .venv/bin/pip
+```
+
+Without it the server still grades; fixes just aren't double-checked
+(`CAS_PYTHON` can point at another Python).
+
 ```sh
 npm run api                                   # dev server on http://localhost:8787
 npm run grade -- path/to/photo.jpg            # grade photos (or a folder) from the command line
@@ -199,8 +214,26 @@ saved or logged by the server.
 4. Start Metro: `npm run mobile`, then open the app on the phone.
 
 If the app says "Can't reach the grading server", the server isn't running or
-the `adb reverse` for 8787 is missing. Using the app away from your computer
-needs the server deployed somewhere; that comes later.
+the `adb reverse` for 8787 is missing.
+
+## Using the app away from your computer
+
+The app talks to whatever `EXPO_PUBLIC_API_URL` says, so the server has to be
+reachable from the phone. Two ways:
+
+- **Keep it on your PC** (free, PC must be on): install
+  [Tailscale](https://tailscale.com) on the PC and phone, run `npm run api`,
+  and set `EXPO_PUBLIC_API_URL=http://<pc-name>:8787`. Or expose it with a
+  Cloudflare tunnel (`cloudflared tunnel --url http://localhost:8787`) and use
+  the https URL it prints.
+- **Host it** (always on, a few dollars a month): build the root `Dockerfile`
+  on Fly.io, Render or Google Cloud Run. Set `ANTHROPIC_API_KEY` and
+  `API_SHARED_SECRET` as the host's secrets (never in the image), then point
+  `EXPO_PUBLIC_API_URL` at the https URL.
+
+`DAILY_REQUEST_LIMIT` (default 100) caps spending if the secret ever leaks.
+After changing `apps/mobile/.env`, restart Metro; a standalone build (no
+computer needed for Metro) is `npx expo run:android --variant release`.
 
 ## Checks
 
@@ -211,6 +244,20 @@ npm run typecheck   # tsc
 npm run lint        # ESLint (eslint-config-expo)
 npm test            # Jest (app) and Vitest (server) unit tests; no API calls
 ```
+
+## Phase 5 test checklist
+
+1. **Unit:** Settings → pick "Derivatives". It gets a checkmark and the note
+   below changes; the Checking screen shows "Unit: Derivatives". Tap it again
+   to clear.
+2. **Math engine:** grade a page with an algebra or derivative mistake. In the
+   sheet, the fix has "Checked by the math engine" under it (or an amber
+   "couldn't confirm" note). Graph or word reasoning shows no badge.
+3. **Tight boxes:** red boxes hug the handwriting rather than whole regions.
+4. **Blurry photo:** grade a deliberately shaky photo. You get "Photo is too
+   blurry" without waiting for the model.
+5. **Timeout:** (optional) stop the server mid-grade; you get a clear error
+   with Try again rather than an endless spinner.
 
 ## Phase 4 test checklist
 
@@ -263,9 +310,12 @@ npm test            # Jest (app) and Vitest (server) unit tests; no API calls
   correction comes from the scanner, so use "Scan a page" for best results.
 - The crop handles can't be operated with VoiceOver/TalkBack. The full image is
   used by default, and "Reset" restores it.
-- **Grading speed:** about 9–17 s per exam page, and up to ~35 s for a dense
-  photo with many problems. That's over the 15 s target on busy pages; the app
-  shows live progress (Phase 3).
+- **Grading speed:** about 15 s typical and ~21 s p95 per exam page (the math
+  checker added a few seconds), up to ~35 s for a dense photo. Over the 15 s
+  target on busy pages; the app shows live progress. Phase 7 looks at cutting
+  time and cost.
+- **Math engine coverage:** graph reasoning, missing steps and word answers
+  can't be checked by SymPy; those fixes show no badge.
 - **Already-graded pages:** a teacher's red-pen marks can sway the grader (it
   once read a red corrected answer as the student's). Real use is checking work
   before it's graded, so this rarely matters.

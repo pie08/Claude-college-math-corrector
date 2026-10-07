@@ -6,6 +6,7 @@ import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-n
 
 import { EmptyState } from '@/components/EmptyState';
 import { MathView } from '@/components/MathView';
+import { VerificationBadge } from '@/components/VerificationBadge';
 import { proseText } from '@/features/grading/latexText';
 import { formatWhen } from '@/features/history/format';
 import { listCorrections, setReviewed, type SavedCorrection } from '@/features/history/repository';
@@ -145,6 +146,7 @@ function CorrectionCard({ item, onToggleReviewed }: { item: SavedCorrection; onT
           <View style={[styles.fix, { borderColor: colors.success }]}>
             <Text style={[styles.label, { color: colors.success }]}>Fix</Text>
             <MathView latex={mark.correction} svg={mark.correction_svg} color={colors.text} />
+            <VerificationBadge verification={mark.verification} />
           </View>
         ) : null}
 

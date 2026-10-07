@@ -48,5 +48,6 @@ for (const file of files) {
   }
 }
 
+grader.close();
 console.log(`\nSaved to ${runDir}`);
 console.log(`Total estimated cost: $${totalCost.toFixed(4)}`);

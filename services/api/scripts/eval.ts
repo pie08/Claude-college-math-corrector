@@ -75,6 +75,7 @@ for (const effort of efforts) {
     );
     rows.push(...done);
   }
+  grader.close();
 }
 
 await writeFile(path.join(runDir, 'report.md'), report(rows));
@@ -92,6 +93,15 @@ function report(all: Row[]): string {
     out.push(
       `| ${effort} | ${pct(t.precision)} | ${pct(t.recall)} | ${t.caught} | ${t.missed} | ${t.falseFlags} | ${t.unmatched} | ${mine.length - scored.length} | ${quantile(latencies, 0.5)} | ${quantile(latencies, 0.95)} | ${costs.length ? (total / costs.length).toFixed(3) : '-'} | ${total.toFixed(3)} |`,
     );
+  }
+  out.push('', '## SymPy checks on flagged mistakes', '', '| effort | verified | disagrees | not checkable | boxes snapped to ink |', '|---|---|---|---|---|');
+  for (const effort of efforts) {
+    const issues = all
+      .filter((r) => r.effort === effort && r.result)
+      .flatMap((r) => r.result!.problems.flatMap((p) => p.issues))
+      .filter((i) => i.status === 'incorrect');
+    const n = (v: string) => issues.filter((i) => i.verification === v).length;
+    out.push(`| ${effort} | ${n('cas_verified')} | ${n('cas_disagrees')} | ${n('not_checkable')} | ${issues.filter((i) => i.bbox_source === 'ink').length} of ${issues.length} |`);
   }
   out.push('', '## Per page', '');
   for (const r of all) {

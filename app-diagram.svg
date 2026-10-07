@@ -36,7 +36,7 @@
 
   <!-- Header -->
   <text class="title" x="40" y="52">Calculus Tutor: how the app works</text>
-  <text class="subtitle" x="40" y="78">Updated after Phase 4 (2026-10-06). Phases: 1 capture ✓ · 2 server ✓ · 3 overlay ✓ · 4 history ✓ · 5 unit, SymPy, OCR · 6 diff. equations + testing · 7 usage + cost · 8 step-by-step tutor</text>
+  <text class="subtitle" x="40" y="78">Updated after Phase 5 (2026-10-06). Phases: 1 capture ✓ · 2 server ✓ · 3 overlay ✓ · 4 history ✓ · 5 unit, SymPy, boxes ✓ · 6 diff. equations + testing (next) · 7 usage + cost · 8 step-by-step tutor</text>
 
   <!-- Legend -->
   <rect class="built" x="1085" y="30" width="22" height="16" rx="3"/><text class="d" x="1114" y="43">Built</text>
@@ -84,11 +84,11 @@
   <text class="d" x="62" y="710">SQLite + photos in app storage; math in real notation; "Got it" review</text>
   <text class="f" x="62" y="727">features/history/ (db, repository) · (tabs)/history · corrections</text>
 
-  <rect class="next" x="45" y="750" width="520" height="90" rx="10"/>
-  <text class="h" x="62" y="776">8. Polish</text>
-  <text class="d" x="62" y="796">Unit selector in Settings · on-device OCR line boxes sent with the</text>
-  <text class="d" x="62" y="813">photo · error screens (offline, blurry, no math found) · hosting</text>
-  <text class="tag" x="490" y="776" fill="#3651d4">PHASE 5</text>
+  <rect class="built" x="45" y="750" width="520" height="90" rx="10"/>
+  <text class="h" x="62" y="776">8. Settings, errors, hosting</text>
+  <text class="d" x="62" y="796">Current unit picked in Settings and sent with each page · clear errors</text>
+  <text class="d" x="62" y="813">(blurry, offline, 120 s timeout) · Dockerfile to host the server</text>
+  <text class="f" x="62" y="830">(tabs)/settings.tsx · features/settings/ · features/grading/api.ts</text>
 
   <!-- flow arrows within the app -->
   <path class="flow" d="M305,218 V232"/>
@@ -134,10 +134,10 @@
   <text class="d" x="672" y="640">MathJax draws each step and fix; the phone shows it with react-native-svg</text>
   <text class="f" x="672" y="657">src/math.ts</text>
 
-  <rect class="next" x="655" y="680" width="520" height="70" rx="10"/>
+  <rect class="built" x="655" y="680" width="520" height="70" rx="10"/>
   <text class="h" x="672" y="706">G. Verify &amp; refine</text>
-  <text class="d" x="672" y="726">SymPy checks each correction (services/cas) · snap boxes to OCR lines</text>
-  <text class="tag" x="1090" y="706" fill="#3651d4">PHASE 5</text>
+  <text class="d" x="672" y="726">SymPy double-checks each fix (Python worker) · boxes snapped to the ink</text>
+  <text class="f" x="672" y="743">src/cas.ts → services/cas/cas_worker.py · src/boxes.ts</text>
 
   <path class="flow" d="M915,218 V232"/>
   <path class="flow" d="M915,304 V318"/>
@@ -181,9 +181,9 @@
   <!-- ===== Bottom: contract + key facts ===== -->
   <rect class="panel" x="25" y="880" width="845" height="175" rx="14"/>
   <text class="col" x="45" y="910">What the server sends back (GradeResult)</text>
-  <text class="d" x="45" y="936">Streamed first as progress events: received → checking_image → reading → writing (n problems) → validating</text>
+  <text class="d" x="45" y="936">Streamed first as progress events: received → checking_image → reading → writing (n problems) → validating (incl. math check)</text>
   <text class="d" x="45" y="962">• page_status: ok | no_math_found | unreadable</text>
-  <text class="d" x="45" y="984">• problems[]: label ("2a"), issues[]: status (incorrect | unclear), box (0–1), explanation, correction (LaTeX),</text>
+  <text class="d" x="45" y="984">• problems[]: label ("2a"), issues[]: status (incorrect | unclear), box (0–1), explanation, correction (LaTeX), verification,</text>
   <text class="d" x="60" y="1002">concept, later_steps_note · plus notation_notes (style tips, never red)</text>
   <text class="d" x="45" y="1024">• overall_summary (tutor voice) · meta: model, effort, time, tokens, cost, sharpness</text>
   <text class="f" x="45" y="1044">Defined once in packages/shared/src/grade.ts, used by both app and server</text>
@@ -192,7 +192,7 @@
   <text class="col" x="910" y="910">Key facts</text>
   <text class="d" x="910" y="936">• Photos live on the phone. The server never saves or logs them.</text>
   <text class="d" x="910" y="958">• Secrets in .env at the repo root (gitignored): API key, app secret.</text>
-  <text class="d" x="910" y="980">• Exam 1 test: 8/8 errors caught, 0 false flags, ~12–16 s, ~3¢/page.</text>
+  <text class="d" x="910" y="980">• Exam 1 test: 8/8 caught, 0 false flags, 6/8 fixes SymPy-verified, ~15 s, ~3.4¢/page.</text>
   <text class="d" x="910" y="1002">• Plan, decisions and results: docs/PLAN.md</text>
   <text class="d" x="910" y="1024">• Setup and commands: README.md</text>
   <text class="d" x="910" y="1046">• Phone → server over USB: adb reverse tcp:8787 tcp:8787 (JDK 17 to build)</text>

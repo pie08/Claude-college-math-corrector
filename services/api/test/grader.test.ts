@@ -1,7 +1,9 @@
 import { GradeResultSchema } from '@calc/shared';
 import { describe, expect, it } from 'vitest';
 
+import type { Checker } from '../src/cas';
 import { countProblems, gradePage, GradeError, type Progress } from '../src/grader';
+import type { CasCheck } from '../src/modelOutput';
 import { config, fakeCall, image, reply, sampleGrade } from './helpers';
 
 describe('gradePage', () => {
@@ -88,6 +90,37 @@ describe('gradePage', () => {
     await gradePage(image, {}, { call, config }, (p) => stages.push(p));
     expect(stages.map((s) => s.stage)).toEqual(['reading', 'writing', 'validating']);
     expect(stages[1]!.problems_found).toBe(2);
+  });
+});
+
+describe('gradePage with the SymPy checker', () => {
+  it('records the checker verdict on each mistake', async () => {
+    const claims: CasCheck[] = [];
+    const checker: Checker = {
+      check: async (claim) => {
+        claims.push(claim);
+        return { verdict: 'verified', detail: '' };
+      },
+    };
+    const { call } = fakeCall([reply(JSON.stringify(sampleGrade()))]);
+    const result = await gradePage(image, {}, { call, config, checker });
+    expect(claims[0]).toMatchObject({ kind: 'equivalent', corrected_result: '-22' });
+    expect(result.problems[0]!.issues[0]!.verification).toBe('cas_verified');
+  });
+
+  it('marks disagreements and unchecked steps', async () => {
+    const grade = sampleGrade();
+    grade.problems[0]!.issues.push({ ...grade.problems[0]!.issues[0]!, status: 'unclear', correction: null });
+    const checker: Checker = { check: async () => ({ verdict: 'disagrees', detail: '' }) };
+    const { call } = fakeCall([reply(JSON.stringify(grade))]);
+    const issues = (await gradePage(image, {}, { call, config, checker })).problems[0]!.issues;
+    expect(issues.map((i) => i.verification)).toEqual(['cas_disagrees', 'not_checkable']);
+  });
+
+  it('leaves verification as not_checked without a checker', async () => {
+    const { call } = fakeCall([reply(JSON.stringify(sampleGrade()))]);
+    const result = await gradePage(image, {}, { call, config });
+    expect(result.problems[0]!.issues[0]!.verification).toBe('not_checked');
   });
 });
 

@@ -90,7 +90,7 @@ UI rules:
 | 2 | Backend + Claude call + schema validation, tested on sample images | Done |
 | 3 | Red overlay with tap-for-explanation; app wired to backend | Done (tested on the Pixel 9a) |
 | 4 | Corrections list with math rendering; SQLite history | Done |
-| 5 | Unit selector, SymPy verification, OCR box snapping, error states, hosting the server | Next |
+| 5 | Unit selector, SymPy verification, box snapping (ink-based), error states, hosting the server | Done (hosting: Dockerfile ready, provider not chosen yet) |
 | 6 | **Differential equations support** (once the app is almost complete), then device testing on the Pixel 9 and known limitations | |
 | 7 | **Usage tracker + cost reduction** (requested 2026-10-06) | |
 | 8 | **Step-by-step tutor:** work out a problem you select (requested 2026-10-06) | |
@@ -151,6 +151,36 @@ tutor at the board:
   out where their work went off track.
 - Verify the final answer with SymPy where possible (Phase 5 checker), and
   count tutor requests in the usage tracker (Phase 7).
+
+### Phase 5 notes (2026-10-06)
+
+- **SymPy checker** (`services/cas/cas_worker.py`, driven by
+  `services/api/src/cas.ts`): for each mistake the model also writes a
+  `cas_check` in SymPy syntax (equivalent / derivative / antiderivative /
+  definite_integral / limit / evaluate, or none). A long-lived Python worker
+  confirms the fix is right and the student's version is wrong. Inputs pass an
+  allow-list before `parse_expr`; each check has a 4 s timeout. Verdicts show
+  in the app as "Checked by the math engine" or an amber "couldn't confirm".
+  Exam 1 eval: 6 verified, 0 disagreements, 2 not checkable (graph reasoning,
+  a missing line).
+- **Box snapping** (`boxes.ts`): instead of OCR, each model box is snapped to
+  the ink around it (background-subtracted dark pixels, row then column runs).
+  A snapped box is used only if it still overlaps the model's box well; else
+  the model's box stays. Eval: 8 of 8 boxes snapped.
+- **Blur check:** pages scoring under `MIN_SHARPNESS` (default 15) are
+  rejected before calling Claude. Calibration: sharp photos/scans score
+  280-600, readable blur ~30, unreadable blur under ~6.
+- **Unit selector** in Settings, stored with `expo-sqlite/kv-store`, sent with
+  each page.
+- **Errors:** client gives up after 120 s with a "taking too long" message and
+  Try again.
+- **Cost/latency:** the extra `cas_check` output raised p50 to ~15 s and p95
+  to ~21 s, about 3.4¢ per exam page (5.4¢ for a dense photo). Phase 7 looks
+  at trimming this.
+- **Hosting:** `Dockerfile` at the repo root (Node + Python + SymPy) runs on
+  any container host (Fly.io, Render, Cloud Run). Alternative with no cloud
+  account: keep the server on the PC and reach it through Tailscale or a
+  Cloudflare tunnel. Not tested locally (no Docker on this PC).
 
 ### Phase 4 notes (2026-10-06)
 

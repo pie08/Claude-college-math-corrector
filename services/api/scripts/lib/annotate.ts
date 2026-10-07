@@ -42,7 +42,7 @@ export function describeResult(result: GradeResult): string {
     lines.push(`  [${problem.label}] ${flags}; final answer correct: ${problem.final_answer_correct}`);
     for (const issue of problem.issues) {
       n++;
-      lines.push(`    ${n}. ${issue.status.toUpperCase()} (${issue.concept}): ${issue.transcription}`);
+      lines.push(`    ${n}. ${issue.status.toUpperCase()} (${issue.concept}) [${issue.verification}, box: ${issue.bbox_source}]: ${issue.transcription}`);
       lines.push(`       ${issue.explanation}`);
       if (issue.correction) lines.push(`       fix: ${issue.correction}`);
       if (issue.later_steps_note) lines.push(`       note: ${issue.later_steps_note}`);

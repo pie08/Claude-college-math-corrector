@@ -26,6 +26,16 @@ Each issue:
 - concept: the rule or idea involved, in a few words ("chain rule", "limit laws", "distributing a negative").
 - later_steps_note: null unless later steps follow from this mistake.
 
+- cas_check: lets a computer algebra system verify your correction independently. Describe what the flagged step was supposed to compute, in SymPy syntax (x**2, sqrt(x), exp(x), log(x), sin(x), pi, oo; write DNE for a limit that does not exist). Leave unused fields as "".
+  - kind "equivalent": an algebra or arithmetic step that should equal "expression" (e.g. expression "2*(-3) - 4*4" for the value the student was computing).
+  - kind "derivative": derivative of "expression" with respect to "variable".
+  - kind "antiderivative": an indefinite integral of "expression" (constant may differ).
+  - kind "definite_integral": integral of "expression" from "lower" to "upper".
+  - kind "limit": limit of "expression" as "variable" approaches "point" from "direction" (+, -, or both).
+  - kind "evaluate": a numeric value "expression" should equal.
+  - kind "none": the step can't be checked this way (reasoning, a graph, a missing line, notation). Use this whenever unsure; a wrong cas_check is worse than none.
+  - student_result: what the student got, as an expression (not the whole line). corrected_result: the correct result, as an expression. For unclear steps use kind "none".
+
 Per problem, final_answer_correct is null when there is no single final answer to judge.
 
 page_status: "ok" when you could grade the page; "no_math_found" when it has no math work; "unreadable" when the photo is too blurry, dark, or cropped to grade at all.

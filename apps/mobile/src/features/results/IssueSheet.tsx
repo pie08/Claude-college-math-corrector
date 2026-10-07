@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { MathView } from '@/components/MathView';
+import { VerificationBadge } from '@/components/VerificationBadge';
 import { proseText } from '@/features/grading/latexText';
 import { radius, spacing, useAppTheme } from '@/theme';
 
@@ -56,6 +57,7 @@ export function IssueSheet({ marks, index, onChangeIndex }: Props) {
                   <Text style={[styles.label, { color: colors.success }]}>Fix</Text>
                 </View>
                 <MathView latex={mark.correction} svg={mark.correction_svg} color={colors.text} />
+                <VerificationBadge verification={mark.verification} />
               </View>
             ) : null}
 

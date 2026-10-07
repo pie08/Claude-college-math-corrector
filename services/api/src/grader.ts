@@ -2,10 +2,12 @@ import Anthropic from '@anthropic-ai/sdk';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import type { GradeErrorCode, GradeResult, GradeStage, Problem } from '@calc/shared';
 
+import { tightenBoxes } from './boxes';
+import type { Checker } from './cas';
 import type { GraderConfig } from './config';
 import type { PreparedImage } from './image';
 import { renderMathSvg } from './math';
-import { ModelGradeSchema } from './modelOutput';
+import { ModelGradeSchema, type ModelGrade } from './modelOutput';
 import { estimateCost } from './pricing';
 import { SYSTEM_PROMPT, userPrompt } from './prompt';
 import { validateModelGrade } from './validate';
@@ -58,7 +60,7 @@ export function claudeModelCall(client: Anthropic, config: GraderConfig): ModelC
 export async function gradePage(
   image: PreparedImage,
   opts: { unit?: string },
-  deps: { call: ModelCall; config: GraderConfig },
+  deps: { call: ModelCall; config: GraderConfig; checker?: Checker },
   onProgress: (progress: Progress) => void = () => {},
 ): Promise<GradeResult> {
   const started = Date.now();
@@ -109,9 +111,15 @@ export async function gradePage(
     if (parsed?.success) {
       const validated = validateModelGrade(parsed.data, image);
       if (validated.ok) {
+        let problems = withMathSvgs(validated.problems);
+        if (deps.checker && problems.some((p) => p.issues.some((i) => i.status === 'incorrect'))) {
+          onProgress({ stage: 'validating', message: 'Double-checking the math' });
+          problems = await verifyCorrections(problems, parsed.data, deps.checker);
+        }
+        problems = await tightenBoxes(problems, image);
         return {
           page_status: parsed.data.page_status,
-          problems: withMathSvgs(validated.problems),
+          problems,
           overall_summary: parsed.data.overall_summary.trim(),
           meta: {
             model: servedBy,
@@ -141,6 +149,27 @@ export async function gradePage(
   }
 
   throw new GradeError('grading_failed', 'Grading failed.');
+}
+
+/**
+ * Asks the SymPy checker to confirm each correction. Issues line up with the
+ * model's output by position (validation keeps the order).
+ */
+async function verifyCorrections(problems: Problem[], grade: ModelGrade, checker: Checker): Promise<Problem[]> {
+  const VERDICTS = { verified: 'cas_verified', disagrees: 'cas_disagrees', not_checkable: 'not_checkable' } as const;
+  return Promise.all(
+    problems.map(async (problem, p) => ({
+      ...problem,
+      issues: await Promise.all(
+        problem.issues.map(async (issue, i) => {
+          const claim = grade.problems[p]?.issues[i]?.cas_check;
+          if (issue.status !== 'incorrect' || !claim) return { ...issue, verification: 'not_checkable' as const };
+          const { verdict } = await checker.check(claim);
+          return { ...issue, verification: VERDICTS[verdict] };
+        }),
+      ),
+    })),
+  );
 }
 
 /** Renders each issue's LaTeX to SVG so the phone can show real math notation. */

@@ -4,6 +4,7 @@ import path from 'node:path';
 import Anthropic from '@anthropic-ai/sdk';
 import type { GradeResult } from '@calc/shared';
 
+import { CasWorker } from '../../src/cas';
 import { EFFORTS, graderConfig, repoRoot, type Effort, type GraderConfig } from '../../src/config';
 import { claudeModelCall, gradePage, type Progress } from '../../src/grader';
 import { prepareImage } from '../../src/image';
@@ -42,12 +43,15 @@ export function parseEffort(value: string): Effort {
 export function makeGrader(overrides: Partial<GraderConfig>) {
   const config = { ...graderConfig(), ...overrides };
   const call = claudeModelCall(new Anthropic(), config);
+  const checker = new CasWorker();
   return {
     config,
+    /** Stops the SymPy worker so the script can exit. */
+    close: () => checker.close(),
     /** Grades one image file; saves the JSON and an annotated copy under `saveAs` (no extension). */
     async grade(file: string, saveAs: string, opts: { unit?: string; onProgress?: (p: Progress) => void } = {}) {
       const image = await prepareImage(await readFile(file), config.maxImageEdge);
-      const result: GradeResult = await gradePage(image, { unit: opts.unit }, { call, config }, opts.onProgress);
+      const result: GradeResult = await gradePage(image, { unit: opts.unit }, { call, config, checker }, opts.onProgress);
       await mkdir(path.dirname(saveAs), { recursive: true });
       await writeFile(`${saveAs}.json`, JSON.stringify(result, null, 2));
       await writeFile(`${saveAs}.jpg`, await annotate(image.base64, result));

@@ -12,3 +12,7 @@ services/api/out/
 services/api/test/fixtures/pages/*
 !services/api/test/fixtures/pages/answers.md
 !services/api/test/fixtures/pages/.gitkeep
+
+# Python virtual environments
+.venv/
+__pycache__/

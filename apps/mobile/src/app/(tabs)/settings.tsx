@@ -1,17 +1,14 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import Constants from 'expo-constants';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { useCurrentUnit } from '@/features/settings/currentUnit';
+import { UNITS } from '@/features/settings/units';
 import { radius, spacing, useAppTheme } from '@/theme';
 
 type Row = { label: string; value: string };
 
 const SECTIONS: { title: string; rows: Row[]; footer?: string }[] = [
-  {
-    title: 'Studying',
-    // The unit picker arrives in Phase 5.
-    rows: [{ label: 'Current unit', value: 'Not set' }],
-    footer: 'Choosing your current unit lets the tutor tailor explanations. Coming in a later update.',
-  },
   {
     title: 'Appearance',
     rows: [{ label: 'Theme', value: 'Matches your device' }],
@@ -30,6 +27,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
+      <UnitPicker />
       {SECTIONS.map((section) => (
         <View key={section.title} style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textMuted }]} accessibilityRole="header">
@@ -52,6 +50,41 @@ export default function SettingsScreen() {
       ))}
       <Text style={[styles.version, { color: colors.textMuted }]}>Calculus Tutor {version}</Text>
     </ScrollView>
+  );
+}
+
+/** Tap a unit to select it; tap it again to clear. */
+function UnitPicker() {
+  const { colors } = useAppTheme();
+  const [unit, setUnit] = useCurrentUnit();
+  return (
+    <View style={styles.section}>
+      <Text style={[styles.sectionTitle, { color: colors.textMuted }]} accessibilityRole="header">
+        Current unit
+      </Text>
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        {UNITS.map((name, i) => {
+          const selected = name === unit;
+          return (
+            <Pressable
+              key={name}
+              onPress={() => setUnit(selected ? null : name)}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: selected }}
+              style={[styles.row, i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border }]}
+            >
+              <Text style={[styles.rowLabel, { color: colors.text, fontWeight: selected ? '700' : '400' }]}>{name}</Text>
+              {selected ? <Ionicons name="checkmark" size={20} color={colors.primary} /> : null}
+            </Pressable>
+          );
+        })}
+      </View>
+      <Text style={[styles.footer, { color: colors.textMuted }]}>
+        {unit
+          ? `Pages are checked with ${unit} in mind, and mistakes from earlier topics (like algebra) are pointed out as such. Tap it again to clear.`
+          : 'Pick what you are studying so explanations are pitched at the right level. Optional.'}
+      </Text>
+    </View>
   );
 }
 

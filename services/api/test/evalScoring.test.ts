@@ -43,6 +43,7 @@ function result(problems: { label: string; incorrect?: number; unclear?: number;
       id: `p${i}`,
       label: p.label,
       transcription: '',
+      attempted: true,
       notation_notes: p.notation ?? [],
       final_answer_correct: null,
       issues: [

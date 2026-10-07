@@ -41,9 +41,9 @@ const result: GradeResult = {
   inline_math: {},
   meta: {} as GradeResult['meta'],
   problems: [
-    { id: 'p1', label: '2a', transcription: '', notation_notes: [], final_answer_correct: false, issues: [issue('p1i1', 'incorrect', ' Limit Laws ')] },
-    { id: 'p2', label: '2b', transcription: '', notation_notes: [], final_answer_correct: null, issues: [issue('p2i1', 'unclear', 'reading')] },
-    { id: 'p3', label: '3c', transcription: '', notation_notes: [], final_answer_correct: false, issues: [issue('p3i1', 'incorrect', 'algebra')] },
+    { id: 'p1', label: '2a', transcription: '', notation_notes: [], final_answer_correct: false, attempted: true, issues: [issue('p1i1', 'incorrect', ' Limit Laws ')] },
+    { id: 'p2', label: '2b', transcription: '', notation_notes: [], final_answer_correct: null, attempted: true, issues: [issue('p2i1', 'unclear', 'reading')] },
+    { id: 'p3', label: '3c', transcription: '', notation_notes: [], final_answer_correct: false, attempted: true, issues: [issue('p3i1', 'incorrect', 'algebra')] },
   ],
 };
 

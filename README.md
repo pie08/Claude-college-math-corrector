@@ -297,6 +297,17 @@ npm run lint        # ESLint (eslint-config-expo)
 npm test            # Jest (app) and Vitest (server) unit tests; no API calls
 ```
 
+## No-work pages checklist
+
+1. **One problem, no work:** photograph a single printed or written problem
+   with nothing under it and tap "Check my work". After grading, the
+   step-by-step tutor opens on its own. Back goes to the page.
+2. **Several problems, no work:** the results say "No work to check yet" with
+   a chip per problem; tap one to see it worked out.
+3. **Mixed page:** problems you did are graded as usual; the ones you
+   skipped have a cap icon on their chip under "Work out a problem step by
+   step".
+
 ## Phase 7 test checklist
 
 1. **Usage:** open Settings. "Usage" shows Today / This month / All time with

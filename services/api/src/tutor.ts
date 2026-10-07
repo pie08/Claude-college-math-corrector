@@ -48,8 +48,10 @@ export function tutorPrompt(context: TutorContext, unit?: string): string {
         (m, i) => `${i + 1}. They wrote ${m.transcription}. ${m.explanation}${m.correction ? ` Correct step: ${m.correction}` : ''}`,
       ),
     );
+  } else if (!context.attempted) {
+    lines.push('The student hasn’t written any work for this problem yet. Work it out from the start; intro gives the plan.');
   } else {
-    lines.push('No mistakes were found in the student’s work on this problem (or they have not attempted it).');
+    lines.push('No mistakes were found in the student’s work on this problem.');
   }
   if (unit) lines.push(`The student is currently studying: ${unit}.`);
   return lines.join('\n');

@@ -61,6 +61,8 @@ export const ProblemSchema = z.object({
   label: z.string(),
   /** LaTeX of the problem as read. */
   transcription: z.string(),
+  /** False when the student wrote no work for it (results from before this field count as attempted). */
+  attempted: z.boolean().default(true),
   issues: z.array(IssueSchema),
   /** Style points that aren't math errors, e.g. a dropped "lim". Never highlighted. */
   notation_notes: z.array(z.string()),

@@ -13,6 +13,8 @@ export const TutorContextSchema = z.object({
   label: z.string().min(1).max(20),
   /** LaTeX of the problem statement as the grader read it. */
   statement: z.string().max(2000),
+  /** False when the student hasn't written any work for it yet. */
+  attempted: z.boolean().default(true),
   /** Mistakes the grader found in the student's work on this problem. */
   mistakes: z
     .array(z.object({ transcription: z.string().max(1000), correction: z.string().max(1000).nullable(), explanation: z.string().max(1000) }))

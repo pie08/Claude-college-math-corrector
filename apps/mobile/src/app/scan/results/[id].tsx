@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useEffect, useMemo, useState, type ComponentProps } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentProps } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,12 +13,17 @@ import { getScan, type GradedScan } from '@/features/history/repository';
 import { IssueSheet } from '@/features/results/IssueSheet';
 import { marksOf, type Mark } from '@/features/results/marks';
 import { PageOverlay } from '@/features/results/PageOverlay';
-import { tutorableProblems } from '@/features/tutor/context';
+import { autoTutorTarget, tutorableProblems } from '@/features/tutor/context';
 import { radius, spacing, useAppTheme } from '@/theme';
 
-/** Results for a saved scan. `mark` (1-based) opens that mark's explanation right away. */
+/**
+ * Results for a saved scan. `mark` (1-based) opens that mark's explanation
+ * right away; `tutor` (a problem label) opens the step-by-step tutor for it,
+ * used when a freshly graded page had no work to check.
+ */
 export default function ResultsScreen() {
-  const { id, mark: markParam } = useLocalSearchParams<{ id: string; mark?: string }>();
+  const { id, mark: markParam, tutor: tutorParam } = useLocalSearchParams<{ id: string; mark?: string; tutor?: string }>();
+  const openedTutor = useRef(false);
   const db = useSQLiteContext();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
@@ -36,11 +41,15 @@ export default function ResultsScreen() {
         const index = marksOf(loaded.result).findIndex((m) => m.number === wanted);
         if (index >= 0) setOpen(index);
       }
+      if (loaded && tutorParam && !openedTutor.current) {
+        openedTutor.current = true;
+        router.push({ pathname: '/scan/tutor', params: { id: loaded.id, label: tutorParam } });
+      }
     });
     return () => {
       cancelled = true;
     };
-  }, [db, id, markParam]);
+  }, [db, id, markParam, tutorParam]);
 
   if (scan === undefined) {
     return (
@@ -66,7 +75,37 @@ export default function ResultsScreen() {
   const notes = result.problems.flatMap((p) => p.notation_notes.map((note) => ({ label: p.label, note })));
   const gradable = result.page_status === 'ok';
   const tutorProblems = tutorableProblems(result);
+  const noWork = autoTutorTarget(result) !== null;
   const openTutor = (label: string) => router.push({ pathname: '/scan/tutor', params: { id: scan.id, label } });
+  const tutorChips =
+    tutorProblems.length > 0 ? (
+      <View style={styles.notes}>
+        <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>
+          {noWork ? 'Pick a problem to work out' : 'Work out a problem step by step'}
+        </Text>
+        <View style={styles.chips}>
+          {tutorProblems.map((p) => (
+            <Pressable
+              key={p.label}
+              onPress={() => openTutor(p.label)}
+              accessibilityRole="button"
+              accessibilityLabel={`Work out problem ${p.label} step by step`}
+              style={({ pressed }) => [
+                styles.chip,
+                { borderColor: p.hasMistake ? colors.error : colors.border, opacity: pressed ? 0.7 : 1 },
+              ]}
+            >
+              {p.hasMistake ? (
+                <Ionicons name="close-circle" size={14} color={colors.error} />
+              ) : !p.attempted ? (
+                <Ionicons name="school-outline" size={14} color={colors.primary} />
+              ) : null}
+              <Text style={[styles.chipText, { color: colors.text }]}>{p.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+    ) : null;
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
@@ -92,6 +131,17 @@ export default function ResultsScreen() {
                   : 'Retake the photo with the page flat, in focus and in good light.'
               }
             />
+          ) : noWork ? (
+            <>
+              <Banner
+                icon="school-outline"
+                color={colors.primary}
+                background={colors.surfaceAlt}
+                title="No work to check yet"
+                body="This page only has the problem. The tutor can show you how it's done, one step at a time."
+              />
+              {tutorChips}
+            </>
           ) : mistakes === 0 && unclear === 0 ? (
             <Banner icon="checkmark-circle" color={colors.success} background={colors.surfaceAlt} title="No errors found" body="Every step checked out." />
           ) : (
@@ -120,28 +170,7 @@ export default function ResultsScreen() {
             <MarkRow key={mark.id} mark={mark} onPress={() => setOpen(i)} />
           ))}
 
-          {tutorProblems.length > 0 ? (
-            <View style={styles.notes}>
-              <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Work out a problem step by step</Text>
-              <View style={styles.chips}>
-                {tutorProblems.map((p) => (
-                  <Pressable
-                    key={p.label}
-                    onPress={() => openTutor(p.label)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Work out problem ${p.label} step by step`}
-                    style={({ pressed }) => [
-                      styles.chip,
-                      { borderColor: p.hasMistake ? colors.error : colors.border, opacity: pressed ? 0.7 : 1 },
-                    ]}
-                  >
-                    {p.hasMistake ? <Ionicons name="close-circle" size={14} color={colors.error} /> : null}
-                    <Text style={[styles.chipText, { color: colors.text }]}>{p.label}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-          ) : null}
+          {noWork ? null : tutorChips}
 
           {notes.length > 0 ? (
             <View style={styles.notes}>

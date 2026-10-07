@@ -1,7 +1,7 @@
 import type { GradeResult, Issue } from '@calc/shared';
 import { describe, expect, it } from '@jest/globals';
 
-import { tutorableProblems, tutorContextFor } from '../context';
+import { autoTutorTarget, tutorableProblems, tutorContextFor } from '../context';
 
 const issue = (status: Issue['status'], explanation: string): Issue => ({
   id: explanation,
@@ -22,8 +22,8 @@ const issue = (status: Issue['status'], explanation: string): Issue => ({
 const result = {
   page_status: 'ok',
   problems: [
-    { id: 'p1', label: '1', transcription: '\frac{d}{dx}x^2', issues: [issue('incorrect', 'wrong power'), issue('unclear', 'smudged')], notation_notes: [], final_answer_correct: false },
-    { id: 'p2', label: '2', transcription: '\int x\,dx', issues: [], notation_notes: [], final_answer_correct: true },
+    { id: 'p1', label: '1', transcription: '\frac{d}{dx}x^2', issues: [issue('incorrect', 'wrong power'), issue('unclear', 'smudged')], notation_notes: [], final_answer_correct: false, attempted: true },
+    { id: 'p2', label: '2', transcription: '\int x\,dx', issues: [], notation_notes: [], final_answer_correct: true, attempted: true },
   ],
   overall_summary: '',
   inline_math: {},
@@ -35,6 +35,7 @@ describe('tutorContextFor', () => {
     expect(tutorContextFor(result, '1')).toEqual({
       label: '1',
       statement: '\frac{d}{dx}x^2',
+      attempted: true,
       mistakes: [{ transcription: 'x^2', correction: '2x', explanation: 'wrong power' }],
     });
   });
@@ -47,12 +48,38 @@ describe('tutorContextFor', () => {
 describe('tutorableProblems', () => {
   it('lists problems in page order and marks the ones with mistakes', () => {
     expect(tutorableProblems(result)).toEqual([
-      { label: '1', hasMistake: true },
-      { label: '2', hasMistake: false },
+      { label: '1', hasMistake: true, attempted: true },
+      { label: '2', hasMistake: false, attempted: true },
     ]);
   });
 
   it('offers nothing for an unreadable page', () => {
     expect(tutorableProblems({ ...result, page_status: 'unreadable' })).toEqual([]);
+  });
+});
+
+describe('autoTutorTarget', () => {
+  const blank = (labels: string[]): GradeResult => ({
+    ...result,
+    problems: labels.map((label, i) => ({ id: `p${i}`, label, transcription: 'x', issues: [], notation_notes: [], final_answer_correct: null, attempted: false })),
+  });
+
+  it('opens the tutor for a single problem with no work', () => {
+    expect(autoTutorTarget(blank(['4']))).toEqual({ label: '4' });
+  });
+
+  it('asks which one when several problems have no work', () => {
+    expect(autoTutorTarget(blank(['1', '2']))).toBe('choose');
+  });
+
+  it('shows normal results when any problem has work', () => {
+    expect(autoTutorTarget(result)).toBeNull();
+    const mixed = blank(['1', '2']);
+    mixed.problems[0] = { ...mixed.problems[0]!, attempted: true };
+    expect(autoTutorTarget(mixed)).toBeNull();
+  });
+
+  it('does nothing for an unreadable page', () => {
+    expect(autoTutorTarget({ ...blank(['1']), page_status: 'unreadable' })).toBeNull();
   });
 });

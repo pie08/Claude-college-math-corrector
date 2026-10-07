@@ -196,6 +196,21 @@ must not drop):
 - Trim output: shorter explanations and notation notes where it doesn't hurt.
 - Run the `claude-api` skill's `cost-optimize` workflow for a ranked list.
 
+### Problems with no work go to the tutor (2026-10-07, user request)
+
+- The grader marks each problem `attempted`; a printed problem with no work
+  under it is listed with `attempted: false` and its full statement (pages
+  of only problems are now `page_status: ok`, not `no_math_found`).
+- App: if no problem on a freshly graded page has work, one problem opens the
+  step-by-step tutor straight away (results stay underneath for Back);
+  several show "No work to check yet" with a problem picker. Pages that mix
+  attempted and unattempted problems show normal results, with a cap icon on
+  the unattempted problems' tutor chips. The tutor is told the problem is
+  unattempted and works it from the start.
+- Measured: a one-problem page 1.7¢ to grade + 1.8¢ for the solution (answer
+  SymPy-verified); a three-problem page 0.9¢. Eval unchanged: 12/12 caught,
+  0 false flags, 0 of 27 attempted problems marked unattempted.
+
 ### Math in sentences (2026-10-06, after user testing)
 
 - Feedback: explanations and tutor steps wrote math as typed text

@@ -10,6 +10,7 @@ import { config, fakeCall, image, reply } from './helpers';
 
 const context: TutorContext = {
   label: '2a',
+  attempted: true,
   statement: '\lim_{x\to 2} [2f(x) - 4g(x)]',
   mistakes: [{ transcription: '8(f(x)-g(x))', correction: '2(-3) - 4(4)', explanation: 'The 2 and 4 can’t be pulled out together.' }],
 };
@@ -42,6 +43,12 @@ describe('tutorPrompt', () => {
 
   it('says when no mistakes were found', () => {
     expect(tutorPrompt({ ...context, mistakes: [] })).toContain('No mistakes were found');
+  });
+
+  it('works an unattempted problem from the start', () => {
+    const text = tutorPrompt({ ...context, attempted: false, mistakes: [] });
+    expect(text).toContain('hasn’t written any work');
+    expect(text).not.toContain('No mistakes were found');
   });
 });
 

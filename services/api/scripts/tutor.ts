@@ -19,7 +19,7 @@ loadEnv();
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
-  options: { label: { type: 'string' }, statement: { type: 'string' }, mistake: { type: 'string', multiple: true }, unit: { type: 'string' } },
+  options: { label: { type: 'string' }, statement: { type: 'string' }, mistake: { type: 'string', multiple: true }, unit: { type: 'string' }, unattempted: { type: 'boolean' } },
 });
 if (positionals.length !== 1 || !values.label) {
   console.error('usage: npm run tutor -- <image> --label 2a [--statement "..."] [--mistake "..."] [--unit "..."]');
@@ -32,7 +32,7 @@ const checker = new CasWorker();
 try {
   const image = await prepareImage(await readFile(userPath(positionals[0]!)), config.maxImageEdge);
   const mistakes = (values.mistake ?? []).map((explanation) => ({ transcription: '', correction: null, explanation }));
-  const result = await solveProblem(image, { label: values.label, statement: values.statement ?? '', mistakes }, { unit: values.unit }, { call, config, checker });
+  const result = await solveProblem(image, { label: values.label, statement: values.statement ?? '', attempted: !values.unattempted, mistakes }, { unit: values.unit }, { call, config, checker });
   console.log(`[${result.label}] solvable: ${result.solvable}; off track at step: ${result.off_track_step}`);
   console.log(result.intro);
   result.steps.forEach((s, i) => console.log(`  ${i}. ${s.title}\n     ${s.math}\n     ${s.explanation}`));

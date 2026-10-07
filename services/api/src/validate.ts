@@ -24,6 +24,7 @@ export function validateModelGrade(grade: ModelGrade, image: { width: number; he
       id: problemId,
       label: problem.label.trim(),
       transcription: problem.transcription,
+      attempted: problem.attempted,
       notation_notes: problem.notation_notes,
       final_answer_correct: problem.final_answer_correct,
       issues: problem.issues.map((issue, i) => {

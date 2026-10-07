@@ -9,6 +9,7 @@ import { Button } from '@/components/Button';
 import { describeGradingError, gradePage, GradingError, type GradingProgress } from '@/features/grading/api';
 import { saveScan } from '@/features/history/repository';
 import { getCurrentUnit } from '@/features/settings/currentUnit';
+import { autoTutorTarget } from '@/features/tutor/context';
 import { radius, spacing, useAppTheme } from '@/theme';
 
 /** The steps shown while grading, in order, keyed by the server's stages. */
@@ -39,16 +40,23 @@ export default function GradingScreen() {
     const timer = setInterval(() => setElapsed(Math.floor((Date.now() - started) / 1000)), 1000);
 
     gradePage(params.uri, { signal: controller.signal, onProgress: setProgress, unit: unit ?? undefined })
-      .then((result) =>
-        saveScan(db, {
+      .then(async (result) => {
+        const id = await saveScan(db, {
           imageUri: params.uri,
           width: Number(params.width),
           height: Number(params.height),
           result,
-        }),
-      )
-      .then((id) => {
-        if (!controller.signal.aborted) router.replace({ pathname: '/scan/results/[id]', params: { id } });
+        });
+        return { id, target: autoTutorTarget(result) };
+      })
+      .then(({ id, target }) => {
+        if (controller.signal.aborted) return;
+        // A page with no work on it goes straight to the tutor; the results
+        // screen stays underneath, so Back returns to the page.
+        router.replace({
+          pathname: '/scan/results/[id]',
+          params: { id, ...(target && target !== 'choose' ? { tutor: target.label } : {}) },
+        });
       })
       .catch((e: unknown) => {
         if (controller.signal.aborted) return;

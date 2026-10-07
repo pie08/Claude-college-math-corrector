@@ -44,6 +44,7 @@ export const ModelIssueSchema = z.strictObject({
 export const ModelProblemSchema = z.strictObject({
   label: z.string().describe('Problem number as printed, including the question number, e.g. "2a" or "5"'),
   transcription: z.string().describe('LaTeX of the problem statement as read'),
+  attempted: z.boolean().describe('False when the student has written no work for this problem yet'),
   issues: z.array(ModelIssueSchema),
   notation_notes: z.array(z.string()),
   final_answer_correct: z.boolean().nullable(),

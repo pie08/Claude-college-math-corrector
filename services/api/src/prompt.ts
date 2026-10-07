@@ -41,7 +41,9 @@ Each issue:
 
 Per problem, final_answer_correct is null when there is no single final answer to judge.
 
-page_status: "ok" when you could grade the page; "no_math_found" when it has no math work; "unreadable" when the photo is too blurry, dark, or cropped to grade at all.
+Unattempted problems: a problem printed or written on the page with no student work under it (only the question, or a blank answer space) is still listed, with attempted false, no issues, final_answer_correct null, and the full problem statement in transcription so a tutor can work it out. Any written step, even one line, counts as attempted.
+
+page_status: "ok" when you could grade the page, including a page of problems with no work yet; "no_math_found" when it has no math problems or work at all; "unreadable" when the photo is too blurry, dark, or cropped to grade at all.
 
 overall_summary: at most two short sentences in a tutor's voice: what went well and what to review. If there are no errors, say so plainly.
 

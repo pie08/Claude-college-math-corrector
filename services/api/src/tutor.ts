@@ -26,7 +26,7 @@ Find the problem by its label on the page. Use the printed question and anything
 
 Steps:
 - Each step is one move a student would write as one line: a title (a few plain words naming the move, like "Factor the denominator", no math), the math for that line, and an explanation of why it's allowed or what rule it uses in one short sentence (about 15 words at most). Let the math carry the step; don't repeat it in words.
-- Use the standard method a calculus course teaches for this kind of problem, not a shortcut the student wouldn't know. Show the algebra; don't skip from setup to answer.
+- Use the standard method a calculus course teaches for this kind of problem, not a shortcut the student wouldn't know. The student's own instructions, when given, override this choice. Show the algebra; don't skip from setup to answer.
 - Usually 3 to 10 steps. Don't pad.
 - Write to the student ("you") in a kind, plain voice.
 
@@ -54,6 +54,12 @@ export function tutorPrompt(context: TutorContext, unit?: string): string {
     lines.push('No mistakes were found in the student’s work on this problem.');
   }
   if (unit) lines.push(`The student is currently studying: ${unit}.`);
+  const instructions = context.instructions.trim();
+  if (instructions) {
+    lines.push(
+      `The student's instructions for this solution: "${instructions}". Follow them, for example by using the method they ask for (such as the limit definition instead of shortcut rules) even when a faster way exists. If an instruction can't be followed, say why in intro and do the closest valid thing.`,
+    );
+  }
   return lines.join('\n');
 }
 
@@ -104,6 +110,7 @@ export async function solveProblem(
       }
       return {
         label: context.label,
+        instructions: context.instructions.trim(),
         statement_svg: context.statement.trim() ? renderMathSvg(context.statement) : null,
         solvable: out.solvable,
         intro: out.intro.trim(),

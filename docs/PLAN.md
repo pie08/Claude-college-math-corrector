@@ -196,6 +196,20 @@ must not drop):
 - Trim output: shorter explanations and notation notes where it doesn't hurt.
 - Run the `claude-api` skill's `cost-optimize` workflow for a ranked list.
 
+### Instructions for the tutor (2026-10-07, user request)
+
+- Some coursework requires a specific method (e.g. the limit definition
+  instead of the power rule). The tutor screen has "Add instructions for the
+  tutor": a text box (500 characters) with quick picks ("Use the limit
+  definition", "Show every algebra step", "No L'Hôpital's rule"). "Work it
+  out" requests a new solution that must follow them; the solution shows
+  "Following your instructions: ...", and they're saved with it and reused by
+  "Work it out again".
+- Server: `instructions` in TutorContext; the prompt says the student's
+  instructions override the default choice of method. Tested: "Find f'(x),
+  f(x) = 3x^2 - 5x" with "Use the limit definition" gave 8 limit-definition
+  steps, answer 6x - 5 SymPy-verified, 1.7¢.
+
 ### Problems with no work go to the tutor (2026-10-07, user request)
 
 - The grader marks each problem `attempted`; a printed problem with no work

@@ -3,7 +3,7 @@ import type { InlineMath, TutorResult, TutorStep } from '@calc/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
@@ -34,6 +34,11 @@ export default function TutorScreen() {
   const [attempt, setAttempt] = useState(0);
   // Set by "Work it out again": skip the saved solution and ask for a new one.
   const [fresh, setFresh] = useState(false);
+  // The student's instructions for the tutor: the ones used for the next
+  // request, the text being edited, and whether the editor is open.
+  const [instructions, setInstructions] = useState('');
+  const [draft, setDraft] = useState('');
+  const [editing, setEditing] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
   // Scroll to a newly revealed step, but not when a saved solution first opens.
@@ -47,11 +52,12 @@ export default function TutorScreen() {
     (async () => {
       const scan = await getScan(db, id);
       if (!scan) throw new GradingError('bad_request', 'This scan was deleted.');
-      const context = tutorContextFor(scan.result, label);
+      const context = tutorContextFor(scan.result, label, instructions);
       setStatement(context.statement);
       const saved = fresh ? null : await getTutorSolution(db, id, label);
       if (saved) {
         setShown(saved.steps.length);
+        setInstructions(saved.instructions);
         return saved;
       }
       const solved = await requestSolution(scan.imageUri, context, { unit: getCurrentUnit() ?? undefined, signal: controller.signal, fresh });
@@ -70,6 +76,8 @@ export default function TutorScreen() {
       controller.abort();
       clearInterval(timer);
     };
+    // `instructions` is read when a new solution is requested (attempt changes).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [db, id, label, attempt, fresh]);
 
   if (error) {
@@ -110,13 +118,30 @@ export default function TutorScreen() {
   }
 
   const total = solution.steps.length;
+
+  /** Throws away the saved solution and asks for a new one with `next` instructions. */
+  function redo(next: string) {
+    void deleteTutorSolution(db, id, label);
+    revealed.current = false;
+    setInstructions(next.trim());
+    setEditing(false);
+    setSolution(null);
+    setShown(1);
+    setElapsed(0);
+    setFresh(true);
+    setAttempt((n) => n + 1);
+  }
   const allShown = shown >= total;
   const offTrack = solution.off_track_step;
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.background }]}>
+    <KeyboardAvoidingView
+      style={[styles.screen, { backgroundColor: colors.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <ScrollView
         ref={scrollRef}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.content}
         onContentSizeChange={() => {
           if (revealed.current) scrollRef.current?.scrollToEnd({ animated: true });
@@ -126,6 +151,19 @@ export default function TutorScreen() {
           <Text style={[styles.label, { color: colors.textMuted }]}>Problem {solution.label}</Text>
           {statement ? <MathView latex={statement} svg={solution.statement_svg} color={colors.text} /> : null}
         </View>
+
+        <InstructionsCard
+          applied={solution.instructions}
+          editing={editing}
+          draft={draft}
+          onEdit={() => {
+            setDraft(solution.instructions);
+            setEditing(true);
+          }}
+          onChange={setDraft}
+          onCancel={() => setEditing(false)}
+          onSubmit={() => redo(draft)}
+        />
 
         <View
           style={[
@@ -191,15 +229,7 @@ export default function TutorScreen() {
                 icon="refresh"
                 variant="secondary"
                 accessibilityHint="Asks for a new solution (about 2 cents)"
-                onPress={() => {
-                  void deleteTutorSolution(db, id, label);
-                  revealed.current = false;
-                  setSolution(null);
-                  setShown(1);
-                  setElapsed(0);
-                  setFresh(true);
-                  setAttempt((n) => n + 1);
-                }}
+                onPress={() => redo(instructions)}
               />
             </View>
             <View style={styles.flex}>
@@ -207,6 +237,84 @@ export default function TutorScreen() {
             </View>
           </>
         )}
+      </View>
+    </KeyboardAvoidingView>
+  );
+}
+
+/** Quick picks for common instructions. */
+const SUGGESTIONS = ['Use the limit definition', 'Show every algebra step', "No L'Hôpital's rule"];
+
+/**
+ * The student's instructions for the tutor ("use the limit definition"):
+ * shows the ones this solution followed, and lets them write new ones and
+ * get the problem worked out again (a new request, about 2 cents).
+ */
+function InstructionsCard(props: {
+  applied: string;
+  editing: boolean;
+  draft: string;
+  onEdit: () => void;
+  onChange: (text: string) => void;
+  onCancel: () => void;
+  onSubmit: () => void;
+}) {
+  const { colors } = useAppTheme();
+
+  if (!props.editing) {
+    return (
+      <Pressable
+        onPress={props.onEdit}
+        accessibilityRole="button"
+        accessibilityLabel={props.applied ? `Your instructions: ${props.applied}. Change them` : 'Add instructions for the tutor'}
+        style={({ pressed }) => [styles.instructionsRow, { borderColor: colors.border, opacity: pressed ? 0.7 : 1 }]}
+      >
+        <Ionicons name="create-outline" size={18} color={colors.primary} />
+        <Text style={[styles.instructionsText, { color: props.applied ? colors.text : colors.primary }]} numberOfLines={2}>
+          {props.applied ? `Following your instructions: “${props.applied}”` : 'Add instructions for the tutor'}
+        </Text>
+      </Pressable>
+    );
+  }
+
+  return (
+    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.primary }]}>
+      <Text style={[styles.label, { color: colors.textMuted }]}>Instructions for the tutor</Text>
+      <TextInput
+        value={props.draft}
+        onChangeText={props.onChange}
+        placeholder="e.g. Use the limit definition of the derivative"
+        placeholderTextColor={colors.textMuted}
+        multiline
+        maxLength={500}
+        autoFocus
+        style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+        accessibilityLabel="Instructions for the tutor"
+      />
+      <View style={styles.suggestions}>
+        {SUGGESTIONS.map((text) => (
+          <Pressable
+            key={text}
+            onPress={() => props.onChange(text)}
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.suggestion, { borderColor: colors.border, opacity: pressed ? 0.7 : 1 }]}
+          >
+            <Text style={[styles.suggestionText, { color: colors.text }]}>{text}</Text>
+          </Pressable>
+        ))}
+      </View>
+      <View style={styles.editButtons}>
+        <View style={styles.flex}>
+          <Button label="Cancel" variant="secondary" onPress={props.onCancel} />
+        </View>
+        <View style={styles.flex}>
+          <Button
+            label="Work it out"
+            icon="school-outline"
+            onPress={props.onSubmit}
+            accessibilityHint="Asks for a new solution that follows your instructions (about 2 cents)"
+          />
+        </View>
       </View>
     </View>
   );
@@ -322,6 +430,49 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '700',
+  },
+  instructionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    minHeight: 44,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderStyle: 'dashed',
+  },
+  instructionsText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  input: {
+    minHeight: 72,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius.sm,
+    padding: spacing.sm,
+    fontSize: 16,
+    textAlignVertical: 'top',
+  },
+  suggestions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+  },
+  suggestion: {
+    minHeight: 36,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+  },
+  suggestionText: {
+    fontSize: 14,
+  },
+  editButtons: {
+    flexDirection: 'row',
+    gap: spacing.sm,
   },
   footer: {
     flexDirection: 'row',

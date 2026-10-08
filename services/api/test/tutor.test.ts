@@ -11,6 +11,7 @@ import { config, fakeCall, image, reply } from './helpers';
 const context: TutorContext = {
   label: '2a',
   attempted: true,
+  instructions: '',
   statement: '\lim_{x\to 2} [2f(x) - 4g(x)]',
   mistakes: [{ transcription: '8(f(x)-g(x))', correction: '2(-3) - 4(4)', explanation: 'The 2 and 4 can’t be pulled out together.' }],
 };
@@ -45,6 +46,12 @@ describe('tutorPrompt', () => {
     expect(tutorPrompt({ ...context, mistakes: [] })).toContain('No mistakes were found');
   });
 
+  it("passes on the student's instructions", () => {
+    const text = tutorPrompt({ ...context, instructions: '  Use the limit definition of the derivative ' });
+    expect(text).toContain('"Use the limit definition of the derivative"');
+    expect(tutorPrompt(context)).not.toContain('instructions for this solution');
+  });
+
   it('works an unattempted problem from the start', () => {
     const text = tutorPrompt({ ...context, attempted: false, mistakes: [] });
     expect(text).toContain('hasn’t written any work');
@@ -62,6 +69,7 @@ describe('solveProblem', () => {
     expect(result.final_answer_svg).toContain('<svg');
     expect(result.off_track_step).toBe(0);
     expect(result.verification).toBe('cas_verified');
+    expect(result.instructions).toBe('');
   });
 
   it('drops an off-track step when there were no mistakes or it is out of range', async () => {

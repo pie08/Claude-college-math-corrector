@@ -22,7 +22,7 @@ const issue = (status: Issue['status'], explanation: string): Issue => ({
 const result = {
   page_status: 'ok',
   problems: [
-    { id: 'p1', label: '1', transcription: '\frac{d}{dx}x^2', issues: [issue('incorrect', 'wrong power'), issue('unclear', 'smudged')], notation_notes: [], final_answer_correct: false, attempted: true },
+    { id: 'p1', label: '1', transcription: '\\frac{d}{dx}x^2', issues: [issue('incorrect', 'wrong power'), issue('unclear', 'smudged')], notation_notes: [], final_answer_correct: false, attempted: true },
     { id: 'p2', label: '2', transcription: '\int x\,dx', issues: [], notation_notes: [], final_answer_correct: true, attempted: true },
   ],
   overall_summary: '',
@@ -34,10 +34,15 @@ describe('tutorContextFor', () => {
   it('sends the statement and only real mistakes', () => {
     expect(tutorContextFor(result, '1')).toEqual({
       label: '1',
-      statement: '\frac{d}{dx}x^2',
+      statement: '\\frac{d}{dx}x^2',
       attempted: true,
+      instructions: '',
       mistakes: [{ transcription: 'x^2', correction: '2x', explanation: 'wrong power' }],
     });
+  });
+
+  it("passes the student's instructions, trimmed", () => {
+    expect(tutorContextFor(result, '2', '  Use the limit definition ').instructions).toBe('Use the limit definition');
   });
 
   it('handles a problem with no mistakes', () => {

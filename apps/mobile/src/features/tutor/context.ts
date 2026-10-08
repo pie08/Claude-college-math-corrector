@@ -1,12 +1,16 @@
 import type { GradeResult, TutorContext } from '@calc/shared';
 
-/** What to send the tutor for one problem on a graded page: its statement and the mistakes found in it. */
-export function tutorContextFor(result: GradeResult, label: string): TutorContext {
+/**
+ * What to send the tutor for one problem on a graded page: its statement, the
+ * mistakes found in it, and the student's own instructions (if any).
+ */
+export function tutorContextFor(result: GradeResult, label: string, instructions = ''): TutorContext {
   const problem = result.problems.find((p) => p.label === label);
   return {
     label,
     statement: problem?.transcription.slice(0, 2000) ?? '',
     attempted: problem?.attempted ?? true,
+    instructions: instructions.trim().slice(0, 500),
     mistakes: (problem?.issues ?? [])
       .filter((issue) => issue.status === 'incorrect')
       .slice(0, 10)

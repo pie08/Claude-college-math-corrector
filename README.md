@@ -297,6 +297,13 @@ npm run lint        # ESLint (eslint-config-expo)
 npm test            # Jest (app) and Vitest (server) unit tests; no API calls
 ```
 
+## Tutor instructions checklist
+
+1. On a step-by-step solution, tap **Add instructions for the tutor**, pick
+   "Use the limit definition" (or type your own), and tap **Work it out**.
+2. The new solution follows it and shows "Following your instructions: ..."
+   at the top. Leaving and reopening keeps it; "Work it out again" reuses it.
+
 ## No-work pages checklist
 
 1. **One problem, no work:** photograph a single printed or written problem

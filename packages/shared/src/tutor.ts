@@ -15,6 +15,8 @@ export const TutorContextSchema = z.object({
   statement: z.string().max(2000),
   /** False when the student hasn't written any work for it yet. */
   attempted: z.boolean().default(true),
+  /** The student's own instructions, e.g. "Use the limit definition of the derivative". */
+  instructions: z.string().max(500).default(''),
   /** Mistakes the grader found in the student's work on this problem. */
   mistakes: z
     .array(z.object({ transcription: z.string().max(1000), correction: z.string().max(1000).nullable(), explanation: z.string().max(1000) }))
@@ -33,6 +35,8 @@ export const TutorStepSchema = z.object({
 
 export const TutorResultSchema = z.object({
   label: z.string(),
+  /** The student's instructions this solution followed ("" for none). */
+  instructions: z.string().default(''),
   /** The problem statement (from the request's context) rendered as SVG; null if it couldn't be. */
   statement_svg: z.string().nullable().default(null),
   /** False when the photo doesn't show enough to work the problem out (e.g. a missing graph). */
